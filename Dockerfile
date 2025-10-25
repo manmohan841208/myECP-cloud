@@ -26,7 +26,8 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/next.config.js ./
  
 # Set environment variable for Next.js
-ENV NODE_ENV=production
+#ENV NODE_ENV=production
+ENV NODE_ENV=development
 EXPOSE 3000
  
 # Start the app
