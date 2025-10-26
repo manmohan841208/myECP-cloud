@@ -1,31 +1,31 @@
-# Step 1: Use an official Node.js image
-FROM node:18-alpine AS builder
- 
-# Step 2: Set the working directory
-WORKDIR /app
- 
-# Step 3: Copy package files and install dependencies
-COPY package*.json ./
-RUN npm install
- 
-# Step 4: Copy all source code and build the Next.js app
-COPY . .
-RUN npm run build
- 
-# Step 5: Use a lightweight Node image for production
-FROM node:18-alpine AS runner
-WORKDIR /app
- 
-# Only copy necessary build output and dependencies
-COPY --from=builder /app/package*.json ./
-RUN npm install --omit=dev
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/next.config.js ./
- 
-# Set environment variable for Next.js
-ENV NODE_ENV=production
-EXPOSE 3000
- 
-# Start the app
-CMD ["npm", "start"]
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+
+name: Node.js CI
+
+on:
+  push:
+    branches: [ "develop" ]
+  pull_request:
+    branches: [ "develop" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    - run: npm ci
+    - run: npm run build --if-present
+    - run: npm test
