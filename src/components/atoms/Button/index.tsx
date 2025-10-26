@@ -11,6 +11,7 @@ type UIButtonVariant =
   | undefined;
 
 interface ButtonProps {
+  type?: 'button' | 'submit' | 'reset';
   variant?: UIButtonVariant;
   children: React.ReactNode;
   onClick?: (e: any) => void;
@@ -19,6 +20,7 @@ interface ButtonProps {
 }
 
 const Button: React.FC<ButtonProps> = ({
+  type,
   variant,
   children,
   onClick,
@@ -27,6 +29,7 @@ const Button: React.FC<ButtonProps> = ({
 }) => {
   return (
     <UIButton
+      type={type || 'button'}
       variant={variant}
       onClick={onClick}
       className={className}

@@ -14,6 +14,27 @@ import { useSelector, useDispatch } from 'react-redux';
 import { setSelectedOption, setOtpResponse } from '@/store/slices/sendOtpSlice';
 import { useVerifyOtpMutation } from '@/store/services/verifyOtpApi';
 
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  verifyOtpSchema,
+  type VerifyOtpFormValues,
+} from '@/schemas/verifyOtpSchema';
+import { CANCEL, CONTINUE, REQUIRED_FIELDS } from '@/constants/commonConstants';
+import { Loader } from '@/components/atoms/Loader';
+import { SELECT_DELIVERY_METHOD } from '@/constants/commonConstants';
+import {
+  CHECK_YOUR_EMAIL,
+  CLICK_HERE_TO_REQUEST_A_NEW_AUTHENTICATION_CODE,
+  ENTER_YOUR_CODE,
+  YOUR_AUTHENTICATION_CODE_HAS_BEEN_SENT,
+} from '@/constants/verifyOtpConstants';
+import {
+  login as loggedIn,
+  setAuthFromStorage,
+} from '@/store/slices/authSlice';
+import { setSession } from '@/lib/session';
+
 const TwoFactAuthCodeEntryPage = () => {
   const [code, setCode] = useState('');
   const [showError, setShowError] = useState(false);
@@ -34,16 +55,29 @@ const TwoFactAuthCodeEntryPage = () => {
 
   const router = useRouter();
 
-  const handleContinue = async () => {
-    if (isEmpty) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+  } = useForm<VerifyOtpFormValues>({
+    resolver: zodResolver(verifyOtpSchema),
+    mode: 'onChange',
+    defaultValues: {
+      code: '',
+    },
+  });
+
+  const onSubmit = async (data: VerifyOtpFormValues) => {
+    if (!isValid) {
       setShowError(true);
       setErrorMessage(`Please enter the 6-digit authentication code.`);
       return;
     }
-    const payload: any = {
+
+    const payload = {
       UserId: userData?.UserId?.toString(),
       Otp: encryptedOtp,
-      EnteredOtp: code,
+      EnteredOtp: data.code,
     };
 
     try {
@@ -51,6 +85,9 @@ const TwoFactAuthCodeEntryPage = () => {
       if (result?.Token) {
         localStorage.setItem('userInfo', JSON.stringify(result));
         localStorage.setItem('token', result?.Token);
+        dispatch(setAuthFromStorage(result?.Token));
+        dispatch(loggedIn());
+        setSession(result?.Token);
         router.push('/account-summary');
       }
     } catch (err: any) {
@@ -77,8 +114,7 @@ const TwoFactAuthCodeEntryPage = () => {
     } catch (err: any) {
       setShowError(true);
       setErrorMessage(
-        err?.data?.message ||
-          `We're sorry! The code you entered is either expired or invalid. Please try again.`,
+        err?.data?.message || `Something went wrong! Please try again.`,
       );
     }
   };
@@ -99,6 +135,7 @@ const TwoFactAuthCodeEntryPage = () => {
         header={'For Your Added Security'}
         className="w-full bg-[var(--color-white)] !p-0 md:max-w-[860px]"
       >
+        {(isVerifying || isLoading) && <Loader className="mx-auto mb-4" />}
         <div className="flex flex-col gap-4 px-4">
           {showError && (
             <CustomAlert
@@ -114,22 +151,21 @@ const TwoFactAuthCodeEntryPage = () => {
 
           <div className="flex justify-end pt-3">
             <b>
-              <span className="px-1 text-[var(--text-error)]">*</span>Required
-              Fields
+              <span className="px-1 text-[var(--text-error)]">*</span>
+              {REQUIRED_FIELDS}
             </b>
           </div>
 
           <p className="text-sm sm:!text-base">
-            <span className="font-bold">Check your Email.</span> An email with
-            your authentication code has been sent. Please enter it below and
-            click “Confirm”
+            <span className="font-bold">{CHECK_YOUR_EMAIL}</span>{' '}
+            {YOUR_AUTHENTICATION_CODE_HAS_BEEN_SENT}
           </p>
 
           <Card
             className="w-full bg-[var(--color-white)] !p-0"
             header={
               <>
-                Select Delivery Method{' '}
+                {SELECT_DELIVERY_METHOD}{' '}
                 <span className="text-[var(--text-error)]">*</span>
               </>
             }
@@ -145,15 +181,18 @@ const TwoFactAuthCodeEntryPage = () => {
                     <InputField
                       label={
                         <div className="flex gap-1">
-                          <p className="text-black">Enter Your Code</p>
+                          <p className="text-black">{ENTER_YOUR_CODE}</p>
                           <span className="text-[var(--text-error)]">*</span>
                         </div>
                       }
                       // className="w-full border-black text-base text-black sm:w-1/2"
-                      value={code}
-                      onChange={(e: any) => handleCodeChange(e)}
                       inputMode="numeric"
                       maxLength={6}
+                      {...register('code', {
+                        onChange: handleCodeChange,
+                      })}
+                      error={errors.code?.message}
+                      // value={form}
                     />
                   </div>
                 </div>
@@ -165,7 +204,7 @@ const TwoFactAuthCodeEntryPage = () => {
                   className="text-[var(--hyperlink)]"
                   onClick={() => getOtp()}
                 >
-                  Click here to request a new authentication code
+                  {CLICK_HERE_TO_REQUEST_A_NEW_AUTHENTICATION_CODE}
                 </Link>
               </div>
             </div>
@@ -177,15 +216,16 @@ const TwoFactAuthCodeEntryPage = () => {
               className="h-full"
               onClick={() => router.back()}
             >
-              Cancel
+              {CANCEL}
             </Button>
 
             <Button
-              variant={isEmpty ? 'disable' : 'primary'}
+              variant={!isValid || isVerifying ? 'disable' : 'primary'}
               className="h-full disabled:cursor-not-allowed disabled:opacity-50"
-              onClick={handleContinue}
+              onClick={handleSubmit(onSubmit)}
+              disabled={!isValid || isVerifying}
             >
-              Continue
+              {CONTINUE}
             </Button>
           </div>
         </div>

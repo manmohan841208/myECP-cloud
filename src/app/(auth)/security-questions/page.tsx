@@ -8,7 +8,28 @@ import CustomCheckbox from '@/components/atoms/Checkbox';
 import { useRouter } from 'next/navigation';
 import CustomAlert from '@/components/atoms/AlertMessage';
 import { useVerifySecurityQuestionMutation } from '@/store/services/verifySecurityQuestionApi';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  securityQuestionSchema,
+  type SecurityQuestionFormValues,
+} from '@/schemas/securityQuestionSchema';
+import type { SecurityQuestionPayload } from '@/types/securityQuestionsType';
+import { Loader } from '@/components/atoms/Loader';
+import {
+  login as loggedIn,
+  setAuthFromStorage,
+} from '@/store/slices/authSlice';
+import {
+  DO_NOT_SELECT_THIS_OPTION_IF_YOU_ARE_USING_A_PUBLIC_COMPUTER,
+  FOR_YOUR_ADDED_SECURITY,
+  REMEMBER_DEVICE,
+  WE_NEED_TO_CONFIRM_ITS_REALLY_YOU,
+} from '@/constants/securityQuestionsConstants';
+import { CANCEL, CONTINUE, REQUIRED_FIELDS } from '@/constants/commonConstants';
+import { setSession } from '@/lib/session';
 
 export default function SecurityForm() {
   const [securityQuestion, setSecurityQuestion] = useState('');
@@ -17,6 +38,7 @@ export default function SecurityForm() {
   const [errorMessage, setErrorMessage] = useState('');
   const [rememberDevice, setRememberDevice] = useState(false);
   const [userInfo, setUserInfo] = useState<any>(null);
+  const dispatch = useDispatch();
 
   const rememberMe = useSelector((state: any) => {
     return state?.login?.rememberMe;
@@ -24,6 +46,19 @@ export default function SecurityForm() {
 
   const [verifySecurityQuestion, { data, isLoading, error }] =
     useVerifySecurityQuestionMutation();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+  } = useForm<SecurityQuestionFormValues>({
+    resolver: zodResolver(securityQuestionSchema),
+    mode: 'onChange',
+    defaultValues: {
+      answer: '',
+      rememberDevice: false,
+    },
+  });
 
   const router = useRouter();
 
@@ -36,21 +71,13 @@ export default function SecurityForm() {
     }
   }, []);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    if (answer.trim().length === 0) {
-      setErrorMessage('Please provide an answer to the security question.');
-      setShowError(true);
-      e.preventDefault();
-      return;
-    }
-
-    e.preventDefault();
-    const payload = {
+  const handleLogin = async (data: SecurityQuestionFormValues) => {
+    const payload: SecurityQuestionPayload = {
       UserId: userInfo?.UserId || '',
       QuestionID: userInfo?.QuestionID || 0,
-      Answer: answer,
+      Answer: data.answer,
       RememberDevice: rememberDevice,
-      RememberUserID: rememberMe ? rememberMe : false,
+      RememberUserID: rememberMe || false,
     };
 
     try {
@@ -62,7 +89,14 @@ export default function SecurityForm() {
             : 'Oops! The answer you entered is incorrect.',
         );
       } else {
+        localStorage.setItem(
+          'rememberDevice',
+          rememberDevice ? 'true' : 'false',
+        );
+        setSession(response?.Token);
         localStorage.setItem('userInfo', response);
+        dispatch(setAuthFromStorage(response?.Token));
+        dispatch(loggedIn());
         router.push('/account-summary');
       }
     } catch (err: any) {
@@ -79,8 +113,9 @@ export default function SecurityForm() {
     <div className="mx-auto max-w-[1152px] p-4 !text-base">
       <Card
         className="w-full bg-[var(--color-white)] !px-0 md:max-w-[860px]"
-        header="For Your Added Security"
+        header={FOR_YOUR_ADDED_SECURITY}
       >
+        {isLoading && <Loader className="mx-auto mb-4" />}
         <div className="flex flex-col gap-4 px-4">
           {showError && (
             <CustomAlert
@@ -92,24 +127,23 @@ export default function SecurityForm() {
 
           <div className="flex justify-end pt-3">
             <b>
-              <span className="px-1 text-[var(--text-error)]">*</span>Required
-              Fields
+              <span className="px-1 text-[var(--text-error)]">*</span>
+              {REQUIRED_FIELDS}
             </b>
           </div>
 
           <p className="text-sm sm:!text-base">
-            We need to confirm it&apos; really you. To verify and protect your
-            account, please answer your security question.
+            {WE_NEED_TO_CONFIRM_ITS_REALLY_YOU}
           </p>
 
-          <form className="" onSubmit={handleLogin}>
+          <form
+            className=""
+            onSubmit={handleSubmit((data: any) => handleLogin(data))}
+          >
             <Card className="flex flex-col gap-3 border-t-4 border-t-[#D3D3D3] bg-white px-[38px] pt-9 pb-6">
               <InputField
                 type="text"
-                value={answer}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setAnswer(e.target.value)
-                }
+                {...register('answer')}
                 label={
                   <>
                     {securityQuestion ? securityQuestion : ''}{' '}
@@ -119,9 +153,15 @@ export default function SecurityForm() {
                 className="w-full border-[2px] border-[var(--primary-color)] sm:w-[47.95%]"
               />
 
+              {errors.answer && (
+                <p className="mt-1 text-sm text-red-500">
+                  {errors.answer.message}
+                </p>
+              )}
+
               <div>
                 <CustomCheckbox
-                  label="Remember Device"
+                  label={REMEMBER_DEVICE}
                   className="!text-sm"
                   checked={rememberDevice}
                   onChange={() => {
@@ -131,8 +171,7 @@ export default function SecurityForm() {
               </div>
 
               <p className="text-sm sm:!text-base">
-                Do not select this option if you are using a public computer,
-                such as in a library.
+                {DO_NOT_SELECT_THIS_OPTION_IF_YOU_ARE_USING_A_PUBLIC_COMPUTER}
               </p>
             </Card>
 
@@ -142,23 +181,15 @@ export default function SecurityForm() {
                 className="h-full"
                 onClick={() => router.back()}
               >
-                Cancel
+                {CANCEL}
               </Button>
               <Button
-                variant={answer.length > 2 ? 'primary' : 'disable'}
-                onClick={(e: any) => {
-                  if (securityQuestion.length <= 2) {
-                    e.preventDefault();
-                    setErrorMessage(
-                      'Please first fill the security question, then continue.',
-                    );
-                    setShowError(true);
-                  }
-                }}
-                disabled={answer.length > 2 ? false : true}
+                variant={isValid ? 'primary' : 'disable'}
+                disabled={!isValid || isLoading}
                 className="h-full"
+                type="submit"
               >
-                Continue
+                {CONTINUE}
               </Button>
             </div>
           </form>

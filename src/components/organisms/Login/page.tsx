@@ -34,9 +34,22 @@ import {
   NEW_TO_MYECP,
   PLEASE_REGISTER_HERE,
   REMEMBER_USER_ID,
+  MILITARY_STAR,
+  APPLY_NOW,
+  LEARN_MORE,
+  SEE_REWARDS_TERMS_AND_CONDITIONS,
 } from '@/constants/loginConstants';
 import { useAuth } from '@/context/AuthProvider';
 import { getCookie, removeCookie, setCookie } from '@/components/utils/cookies';
+
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { loginSchema, type LoginFormValues } from '@/schemas/loginSchema';
+import { Loader } from '@/components/atoms/Loader';
+import {
+  login as loggedIn,
+  setAuthFromStorage,
+} from '@/store/slices/authSlice';
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -44,9 +57,17 @@ const Login = () => {
   const { UserName, Password, rememberMe } = useSelector(
     (state: any) => state.login,
   );
-  const [loginUser] = useLoginMutation();
+  const [loginUser, { isLoading, error }] = useLoginMutation();
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+  });
 
   useEffect(() => {
     const userNameCookie: any = getCookie('userName');
@@ -55,18 +76,23 @@ const Login = () => {
       dispatch(setRememberMe(true));
     } else if (!userNameCookie) {
       dispatch(setRememberMe(false));
+      removeCookie('userName');
     }
   }, [dispatch]);
 
   const router = useRouter();
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const remeberDeviceId = localStorage.getItem('rememberDevice');
+  console.log('remeberDeviceId', !remeberDeviceId);
+
+  const handleLogin = async (data: any) => {
+    dispatch(setUserID(data.UserName));
+    dispatch(setPassword(data.password));
     try {
       const result: any = await loginUser({
-        UserName,
-        Password,
-        IsSecurityQuestionNeeded: true,
+        UserName: data.UserName,
+        Password: data.password,
+        IsSecurityQuestionNeeded: !remeberDeviceId,
       }).unwrap();
       localStorage.setItem('userInfo', JSON.stringify(result));
       localStorage.setItem('token', result?.Token);
@@ -84,7 +110,9 @@ const Login = () => {
         router.push('/login/2FA');
       } else {
         login(result?.Token);
-        router.push('/');
+        dispatch(setAuthFromStorage(result?.Token));
+        dispatch(loggedIn());
+        router.push('/account-summary');
       }
     } catch (err: any) {
       setShowError(true);
@@ -120,25 +148,33 @@ const Login = () => {
   return (
     // Center horizontally (by width) on all screens while keeping max-width:1152px
     <div className="mx-auto flex w-full max-w-[1152px] flex-col gap-4">
+      {isLoading && <Loader className="mx-auto mb-4" />}
       <section className="flex w-full gap-4">
         <Card className="flex min-h-[373px] w-full flex-col justify-between !p-3 lg:max-h-[373px] lg:max-w-[410px]">
           <div>
             {showError && (
               <CustomAlert type="error" description={errorMessage} />
             )}
-            <form className="flex flex-col gap-4" onSubmit={handleLogin}>
+            <form
+              className="flex flex-col gap-4"
+              onSubmit={handleSubmit((data: any) => handleLogin(data))}
+            >
               <div className="flex flex-col gap-1">
                 <InputField
                   label={USER_ID_LABEL}
-                  onChange={(e: any) =>
-                    dispatch(
-                      setUserID(e.target.value),
-                      setShowError(false),
-                      setErrorMessage(''),
-                    )
-                  }
-                  value={UserName}
+                  // onChange={(e: any) =>
+                  //   dispatch(
+                  //     setUserID(e.target.value),
+                  //     setShowError(false),
+                  //     setErrorMessage(''),
+                  //   )
+                  // }
+                  // value={UserName}
+                  {...register('UserName')}
                 />
+                {errors.UserName && (
+                  <p className="text-red-500">{errors.UserName.message}</p>
+                )}
                 <div className="flex items-center justify-end gap-1">
                   {FORGOT}
                   <Link
@@ -161,14 +197,18 @@ const Login = () => {
                 <InputField
                   label={USER_PASSWORD_LABEL}
                   type="password"
-                  onChange={(e: any) =>
-                    dispatch(
-                      setPassword(e.target.value),
-                      setShowError(false),
-                      setErrorMessage(''),
-                    )
-                  }
+                  // onChange={(e: any) =>
+                  //   dispatch(
+                  //     setPassword(e.target.value),
+                  //     setShowError(false),
+                  //     setErrorMessage(''),
+                  //   )
+                  // }
+                  {...register('password')}
                 />
+                {errors.password && (
+                  <p className="text-red-500">{errors.password.message}</p>
+                )}
                 <div className="flex items-center justify-end gap-1">
                   {FORGOT}
                   <Link
@@ -200,8 +240,10 @@ const Login = () => {
                   />
                 </div>
                 <Button
-                  variant={UserName && Password ? 'primary' : 'disable'}
+                  type="submit"
+                  variant={!isLoading || isValid ? 'primary' : 'disable'}
                   className="h-10"
+                  disabled={isLoading || !isValid}
                 >
                   {LOGIN_BTN}
                 </Button>
@@ -243,17 +285,17 @@ const Login = () => {
       <section className="w-full">
         <Card className="h-full w-full px-4 lg:max-h-[300px]">
           <div className="max-h-9 py-2">
-            <h1 className="!text-base">MILITARY STAR</h1>
+            <h1 className="!text-base">{MILITARY_STAR}</h1>
           </div>
 
           {/* <p className='text-sm text-black hidden sm:text-[12px] sm:block'>
             </p> */}
-          <div className="hidden w-full text-white sm:block lg:hidden">
+          {/* <div className="hidden w-full text-white sm:block lg:hidden">
             Lorem ipsum dolor sit, amet consectetur adipisicing elit. Natus,
             maxime! Lorem ipsum dolor sit amet consectetur, adipisicing elit.
             Dolorum, quo deleniti itaque cupiditate vero nihil blanditiis
             exercitationem, nisi
-          </div>
+          </div> */}
 
           <div className="flex w-full flex-col gap-6 pb-[14px] lg:flex-row lg:justify-evenly lg:gap-2">
             {/* Column 1 - Dummy Card Image + Button + Learn More */}
@@ -267,14 +309,14 @@ const Login = () => {
               </div>
               <div className="flex max-h-10 w-full items-center justify-center">
                 <Button variant={'primary'} className="max-w-[97px]">
-                  Apply Now
+                  {APPLY_NOW}
                 </Button>
               </div>
               <Link
                 href="#"
                 className="text-sm text-blue-600 hover:text-blue-800"
               >
-                Learn More
+                {LEARN_MORE}
               </Link>
             </div>
 
@@ -293,7 +335,7 @@ const Login = () => {
                   href="#"
                   className="text-sm text-blue-600 hover:text-blue-800"
                 >
-                  See Rewards Terms and Conditions
+                  {SEE_REWARDS_TERMS_AND_CONDITIONS}
                 </Link>
               </div>
             </div>

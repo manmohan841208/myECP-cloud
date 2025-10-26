@@ -5,7 +5,7 @@ interface VerifySecurityQuestionPayload {
   UserId: string;
   QuestionID: number;
   Answer: string;
-  RememberDevice: boolean;
+  RememberDevice: boolean | undefined;
   RememberUserID: boolean;
 }
 

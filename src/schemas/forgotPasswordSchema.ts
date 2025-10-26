@@ -7,7 +7,7 @@ export const forgotPasswordSchema = z.object({
     .length(5, 'SSN must be exactly 5 digits')
     .regex(/^\d{5}$/, 'SSN must be numeric'),
 
-  DOB: z.string().refine(
+  dob: z.string().refine(
     (val) => {
       const today = new Date();
       const inputDate = new Date(val);

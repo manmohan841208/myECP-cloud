@@ -19,6 +19,11 @@ import {
 } from '@/schemas/forgotPasswordSchema';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { CANCEL, REQUIRED_FIELDS } from '@/constants/commonConstants';
+import { Loader } from '@/components/atoms/Loader';
+import { FORGOT_PASSWORD } from '@/constants/forgotPasswordConstants';
+import { PLEASE_ENTER_THE_STRING_AS_SHOWN_ABOVE } from '@/constants/forgotUserIdConstants';
+import { set } from 'zod';
 
 export default function ForgotUserIdPage() {
   const [forgotPassword, { isLoading }] = useForgotPasswordMutation();
@@ -48,17 +53,10 @@ export default function ForgotUserIdPage() {
   const {
     register,
     handleSubmit,
-    setError,
-    formState: { errors },
-    watch,
+    formState: { errors, isValid },
   } = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordSchema),
-    defaultValues: {
-      UserName: '',
-      SSNLast5: '',
-      DOB: '',
-      captchaInput: '',
-    },
+    mode: 'onChange',
   });
 
   const fetchCaptcha = async () => {
@@ -75,12 +73,8 @@ export default function ForgotUserIdPage() {
     fetchCaptcha();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    if (name === 'UserName') {
-      localStorage.setItem('forgotPwdUserName', value);
-    }
-    setForm((prev) => ({ ...prev, [name]: value }));
+  const handleChange = () => {
+    setShowError(false);
   };
 
   const handleDOBChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -93,7 +87,7 @@ export default function ForgotUserIdPage() {
     }));
   };
 
-  const handleValidate = async () => {
+  const handleValidate = async (data: ForgotPasswordFormValues) => {
     const isCaptchaValid = captchaVerify === captchaText;
 
     if (!isCaptchaValid) {
@@ -101,8 +95,16 @@ export default function ForgotUserIdPage() {
       return;
     }
 
+    const payload: any = {
+      LastName: data.UserName,
+      SSNLast5: data.SSNLast5,
+      DOB_Day: form.DOB_Day,
+      DOB_Month: form.DOB_Month,
+      DOB_Year: form.DOB_Year,
+    };
+
     try {
-      const response: any = await forgotPassword(form).unwrap();
+      const response: any = await forgotPassword(payload).unwrap();
       dispatch(setForgotPWDSecurityQuestions(response));
       route.push('/for-your-security'); // Navigate to next step
     } catch (err: any) {
@@ -124,8 +126,9 @@ export default function ForgotUserIdPage() {
     <div className="mx-auto max-w-[1152px] p-4 !text-base">
       <Card
         className="w-full bg-[var(--color-white)] !p-0 md:max-w-[860px]"
-        header="Forgot Password?"
+        header={FORGOT_PASSWORD}
       >
+        {isLoading && <Loader className="mx-auto mb-4" />}
         <div className="flex flex-col p-6 sm:gap-4">
           {(showCredentialError || showCaptchaError) && captchaVerify && (
             <CustomAlert type="error" description={captchaVerify} />
@@ -134,112 +137,119 @@ export default function ForgotUserIdPage() {
 
           <div className="flex justify-end">
             <b>
-              <span className="px-1 text-[var(--text-error)]">*</span>Required
-              Fields
+              <span className="px-1 text-[var(--text-error)]">*</span>
+              {REQUIRED_FIELDS}
             </b>
           </div>
 
-          <Card className="customCard flex w-full flex-col gap-3 px-6 py-3 sm:flex-row md:p-6">
-            <div className="w-full sm:w-1/2">
-              <InputField
-                label="User ID"
-                mandantory
-                error={showCredentialError ? '' : undefined}
-                onChange={handleChange}
-                name="UserName"
-                value={form.UserName}
-                className={
-                  showCredentialError ? 'text-[var(--text-error)]' : ''
-                }
-              />
-            </div>
-
-            <div className="w-full sm:w-1/2">
-              <InputField
-                label="Last 5 Digits of SSN"
-                mandantory
-                error={showCredentialError ? '' : undefined}
-                className={
-                  showCredentialError ? 'text-[var(--text-error)]' : ''
-                }
-                onChange={handleChange}
-                name="SSNLast5"
-                type="password"
-                maxLength={5}
-                value={form.SSNLast5}
-              />
-            </div>
-          </Card>
-
-          <Card className="customCard flex w-full gap-3 px-6 md:p-6">
-            <div className="w-full sm:w-1/2">
-              <InputField
-                label="Date of Birth"
-                mandantory
-                className={
-                  showCredentialError ? 'text-[var(--text-error)]' : ''
-                }
-                error={showCredentialError ? '' : undefined}
-                type="date"
-                name="dob"
-                value={dob}
-                onChange={handleDOBChange}
-                max={new Date().toISOString().split('T')[0]}
-              />
-            </div>
-          </Card>
-
-          <Card className="customCard flex flex-col px-6 py-4 sm:p-6">
-            <div className="flex flex-col gap-4">
-              <div className="flex gap-2">
-                <div className="bg-[#000f73] px-[12px] py-1 text-xl text-white">
-                  {captchaText || !isFetching ? captchaText : 'Loading...'}
-                </div>
-
-                <Button
-                  onClick={() => fetchCaptcha()}
-                  className="!bg-transparent !p-1"
-                >
-                  <Image src={Relode} alt="reload-img" />
-                </Button>
-              </div>
-
-              <div className="w-1/2">
+          <form
+            className="flex flex-col gap-4"
+            onSubmit={handleSubmit((data: any) => handleValidate(data))}
+          >
+            <Card className="customCard flex w-full flex-col gap-3 px-6 py-3 sm:flex-row md:p-6">
+              <div className="w-full sm:w-1/2">
                 <InputField
-                  placeholder="Enter Captcha Code"
-                  value={captchaVerify}
-                  name="captchaInput"
-                  onChange={(e) => handleCaptchaChange(e.target.value)}
-                  error={showCaptchaError ? '' : undefined}
-                  className={showCaptchaError ? 'text-[var(--text-error)]' : ''}
-                  iconRight={showCaptchaError ? NotSecure : ''}
+                  label="User ID"
+                  mandantory
+                  {...register('UserName')}
+                  error={errors.UserName?.message}
+                  name="UserName"
+                  className={
+                    showCredentialError ? 'text-[var(--text-error)]' : ''
+                  }
+                  onChange={handleChange}
                 />
               </div>
+
+              <div className="w-full sm:w-1/2">
+                <InputField
+                  label="Last 5 Digits of SSN"
+                  mandantory
+                  className={
+                    showCredentialError ? 'text-[var(--text-error)]' : ''
+                  }
+                  {...register('SSNLast5')}
+                  error={errors.SSNLast5?.message}
+                  name="SSNLast5"
+                  type="password"
+                  maxLength={5}
+                  onChange={handleChange}
+                />
+              </div>
+            </Card>
+
+            <Card className="customCard flex w-full gap-3 px-6 md:p-6">
+              <div className="w-full sm:w-1/2">
+                <InputField
+                  label="Date of Birth"
+                  mandantory
+                  className={
+                    showCredentialError ? 'text-[var(--text-error)]' : ''
+                  }
+                  {...register('dob')}
+                  error={errors.dob?.message}
+                  type="date"
+                  name="dob"
+                  value={dob}
+                  onChange={handleDOBChange}
+                  max={new Date().toISOString().split('T')[0]}
+                />
+              </div>
+            </Card>
+
+            <Card className="customCard flex flex-col px-6 py-4 sm:p-6">
+              <div className="flex flex-col gap-4">
+                <div className="flex gap-2">
+                  <div className="bg-[#000f73] px-[12px] py-1 text-xl text-white">
+                    {captchaText || !isFetching ? captchaText : 'Loading...'}
+                  </div>
+
+                  <Button
+                    onClick={() => fetchCaptcha()}
+                    className="!bg-transparent !p-1"
+                  >
+                    <Image src={Relode} alt="reload-img" />
+                  </Button>
+                </div>
+
+                <div className="w-1/2">
+                  <InputField
+                    placeholder="Enter Captcha Code"
+                    {...register('captchaInput')}
+                    error={errors.captchaInput?.message}
+                    name="captchaInput"
+                    onChange={(e) => handleCaptchaChange(e.target.value)}
+                    className={
+                      showCaptchaError ? 'text-[var(--text-error)]' : ''
+                    }
+                    iconRight={showCaptchaError ? NotSecure : ''}
+                  />
+                </div>
+              </div>
+
+              <p
+                className={`mt-1 w-full text-sm sm:w-1/2 ${
+                  showCaptchaError ? 'text-[var(--text-error)]' : ''
+                }`}
+              >
+                {PLEASE_ENTER_THE_STRING_AS_SHOWN_ABOVE}
+              </p>
+            </Card>
+
+            <div className="flex items-center justify-end gap-2">
+              <Button variant="outline" onClick={() => route.back()}>
+                {CANCEL}
+              </Button>
+
+              <Button
+                variant={isValid ? 'primary' : 'disable'}
+                type="submit"
+                disabled={!isValid || isLoading}
+              >
+                {isLoading ? 'Validating...' : 'Validate'}
+              </Button>
             </div>
-
-            <p
-              className={`mt-1 w-full text-sm sm:w-1/2 ${
-                showCaptchaError ? 'text-[var(--text-error)]' : ''
-              }`}
-            >
-              Please enter the string as shown above before clicking on
-              "Validate"
-            </p>
-          </Card>
-
-          <div className="flex items-center justify-end gap-2">
-            <Button variant="outline" onClick={() => route.back()}>
-              Cancel
-            </Button>
-
-            <Button
-              variant={isFormValid ? 'primary' : 'disable'}
-              onClick={handleValidate}
-              disabled={!isFormValid || isLoading}
-            >
-              {isLoading ? 'Validating...' : 'Validate'}
-            </Button>
-          </div>
+          </form>
         </div>
       </Card>
     </div>

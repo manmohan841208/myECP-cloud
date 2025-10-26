@@ -3,7 +3,7 @@ import { baseApi } from './baseApi';
 
 interface SendOtpPayload {
   UserId: string;
-  OtpOption: 'Email' | 'SMS'; // assuming only these two options
+  OtpOption: 'Email' | 'SMS' | ''; // assuming only these two options
 }
 
 interface SendOtpResponse {

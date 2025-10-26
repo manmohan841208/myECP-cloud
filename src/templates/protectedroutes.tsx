@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation'; // ✅ Correct import for App Router
 import { getSession } from '@/lib/session';
+import { Loader } from '@/components/atoms/Loader';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
@@ -17,7 +18,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
-  if (!isAuthenticated) return <p>Loading...</p>;
+  if (!isAuthenticated) return <Loader className="mx-auto mb-4" />;
 
   return <>{children}</>;
 };

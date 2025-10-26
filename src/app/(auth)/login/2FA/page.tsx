@@ -17,23 +17,30 @@ import CustomAlert from '@/components/atoms/AlertMessage';
 import { useDispatch } from 'react-redux';
 import { setSelectedOption, setOtpResponse } from '@/store/slices/sendOtpSlice';
 
-interface UserInfo {
-  UserId: number;
-  FirstName: string | null;
-  LastName: string | null;
-  IsSecurityQuestionsNeeded: boolean;
-  Is2FANeeded: boolean;
-  IsTwoFAOtpIn: boolean;
-  IsTwoFAEmailOptIn: boolean;
-  IsSMSOptIn: boolean;
-  EmailAddress: string;
-  MobileNo: string | null;
-  CID: string | null;
-  IsPrimaryUser: boolean;
-  AccountFirstName: string;
-  AccountMiddleName: string;
-  AccountLastName: string;
-}
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  twoFactorSchema,
+  type TwoFactorFormValues,
+} from '@/schemas/twoFactorSchema';
+import type { SendOtpPayload } from '@/types/twoFactorTypes';
+import { set } from 'zod';
+import { Loader } from '@/components/atoms/Loader';
+import {
+  CANCEL,
+  CONTINUE,
+  EMAIL,
+  PHONE,
+  REQUIRED_FIELDS,
+  SELECT_DELIVERY_METHOD,
+} from '@/constants/commonConstants';
+import {
+  FOR_YOUR_ADDED_SECURITY,
+  PLEASE_CALL_IF_YOU_NO_LONGER_HAVE_ACCESS_TO_THIS_EMAIL_OR_PHONE,
+  WE_NEED_TO_CONFIRM_ITS_YOU,
+  YOU_ARE_NOT_ENROLLED_TO_RECIEVE_2FA_CODE_VIA_TEXT,
+  YOU_CAN_ENROLL_BY_GOING_TO_MY_PROFILE_ANYTIME,
+} from '@/constants/twoFactorConstants';
 
 const TwoFactorAuthPage = () => {
   const route = useRouter();
@@ -45,18 +52,43 @@ const TwoFactorAuthPage = () => {
   const [showError, setShowError] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState('');
 
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors, isValid },
+  } = useForm<TwoFactorFormValues>({
+    resolver: zodResolver(twoFactorSchema),
+    mode: 'onChange',
+    defaultValues: {
+      otpOption: '', // initial empty value
+    },
+  });
+
+  const otpOption = watch('otpOption');
+
   const dispatch = useDispatch();
 
-  const sendOtp = async () => {
+  const onOtpOptionChange = (value: 'Email' | 'SMS') => {
+    setValue('otpOption', value);
+    setShowError(false);
+  };
+
+  const sendOtp = async (data: TwoFactorFormValues) => {
+    if (!data?.otpOption) {
+      setShowError(true);
+      return;
+    }
     try {
-      const payload: any = {
+      const payload: SendOtpPayload = {
         UserId: userData?.UserId?.toString(),
-        OtpOption: selectedOtpOption,
+        OtpOption: data?.otpOption,
       };
 
       const response = await sendOtpTrigger(payload).unwrap();
       if (response?.Otp) {
-        dispatch(setSelectedOption(selectedOtpOption));
+        dispatch(setSelectedOption(data?.otpOption));
         dispatch(setOtpResponse(response?.Otp));
         route.push('/login/2FA/code-entry');
       }
@@ -72,38 +104,36 @@ const TwoFactorAuthPage = () => {
     <div className="mx-auto max-w-[1152px] p-4 !text-base">
       <Card
         className="w-full bg-[var(--color-white)] !p-0 md:max-w-[860px]"
-        header="For Your Added Security"
+        header={FOR_YOUR_ADDED_SECURITY}
       >
+        {isLoading && <Loader className="mx-auto mb-4" />}
         <div className="flex flex-col gap-4 px-4">
-          {showError && (
-            <CustomAlert
-              type="error"
-              className="mt-3"
-              description={
-                errorMessage
-                  ? errorMessage
-                  : `We're sorry! The code you entered is either expired or invalid. Please try again.`
-              }
-            />
-          )}
+          {showError ||
+            (errors?.otpOption && (
+              <CustomAlert
+                type="error"
+                className="mt-3"
+                description={
+                  errorMessage
+                    ? errorMessage
+                    : `Please select an option to recieve the OTP.`
+                }
+              />
+            ))}
           <div className="flex justify-end pt-3">
             <b>
-              <span className="px-1 text-[var(--text-error)]">*</span>Required
-              Fields
+              <span className="px-1 text-[var(--text-error)]">*</span>
+              {REQUIRED_FIELDS}
             </b>
           </div>
 
-          <p className="text-sm sm:!text-base">
-            We need to confirm it’s really you. As part of the two-factor
-            authentication process, we’ll send you an authentication code
-            through one of the below delivery methods.
-          </p>
+          <p className="text-sm sm:!text-base">{WE_NEED_TO_CONFIRM_ITS_YOU}</p>
 
           <Card
             className="w-full bg-[var(--color-white)] !p-0"
             header={
               <>
-                Select Delivery Method{' '}
+                {SELECT_DELIVERY_METHOD}{' '}
                 <span className="text-[var(--text-error)]">*</span>
               </>
             }
@@ -112,9 +142,10 @@ const TwoFactorAuthPage = () => {
               <div className="flex flex-col py-9">
                 <RadioGroup
                   className="flex flex-col gap-9"
-                  value={selectedOtpOption}
+                  value={watch('otpOption')}
+                  {...register('otpOption')}
                   onValueChange={(value) =>
-                    setSelectedOtpOption(value === 'Email' ? 'Email' : 'SMS')
+                    onOtpOptionChange(value as 'Email' | 'SMS')
                   }
                 >
                   {userData?.MobileNo ? (
@@ -130,7 +161,7 @@ const TwoFactorAuthPage = () => {
                       </div>
                       <div>
                         <Label htmlFor="mobile" className="text-base font-bold">
-                          Phone
+                          {PHONE}
                         </Label>
                         <div className="flex items-center justify-start gap-1">
                           <RadioGroupItem value="SMS" id="mobile" />
@@ -138,11 +169,9 @@ const TwoFactorAuthPage = () => {
                         </div>
                         <div className="pl-4">
                           <p>
-                            You are not enrolled to receive 2FA code via text.
+                            {YOU_ARE_NOT_ENROLLED_TO_RECIEVE_2FA_CODE_VIA_TEXT}
                           </p>
-                          <p>
-                            You can enroll by going to My Profile at anytime.
-                          </p>
+                          <p>{YOU_CAN_ENROLL_BY_GOING_TO_MY_PROFILE_ANYTIME}</p>
                         </div>
                       </div>
                     </div>
@@ -157,7 +186,7 @@ const TwoFactorAuthPage = () => {
                       </div>
                       <div>
                         <Label htmlFor="email" className="text-base font-bold">
-                          Email
+                          {EMAIL}
                         </Label>
                         <div className="flex items-center justify-center gap-1">
                           <RadioGroupItem value="Email" id="email" />
@@ -170,8 +199,9 @@ const TwoFactorAuthPage = () => {
               </div>
 
               <div className="pb-5 text-sm">
-                Please call 1-877-891-7827 If you no longer have access to this
-                email address or phone number
+                {
+                  PLEASE_CALL_IF_YOU_NO_LONGER_HAVE_ACCESS_TO_THIS_EMAIL_OR_PHONE
+                }
               </div>
             </div>
           </Card>
@@ -185,18 +215,16 @@ const TwoFactorAuthPage = () => {
                 className="h-full"
                 onClick={() => route.back()}
               >
-                Cancel
+                {CANCEL}
               </Button>
 
               <Button
-                variant={
-                  !selectedOtpOption || isLoading ? 'disable' : 'primary'
-                }
-                onClick={() => sendOtp()}
+                variant={!otpOption || isLoading ? 'disable' : 'primary'}
+                onClick={handleSubmit(sendOtp)}
                 className="h-full"
-                disabled={!selectedOtpOption || isLoading}
+                disabled={!otpOption || isLoading}
               >
-                Continue
+                {CONTINUE}
               </Button>
             </div>
           </div>
