@@ -9,6 +9,7 @@ RUN npm install --save-dev @types/tailwindcss
 # Step 3: Copy package files and install dependencies
 COPY package*.json ./
 RUN npm install
+RUN npm install --include=optional sharp
  
 # Step 4: Copy all source code and build the Next.js app
 COPY . .
