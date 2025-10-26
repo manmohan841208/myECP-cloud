@@ -9,7 +9,6 @@ RUN npm install --save-dev @types/tailwindcss
 # Step 3: Copy package files and install dependencies
 COPY package*.json ./
 RUN npm install
-RUN npm install --include=optional sharp
  
 # Step 4: Copy all source code and build the Next.js app
 COPY . .
@@ -27,8 +26,7 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/next.config.js ./
  
 # Set environment variable for Next.js
-#ENV NODE_ENV=production
-ENV NODE_ENV=development
+ENV NODE_ENV=production
 EXPOSE 3000
  
 # Start the app
