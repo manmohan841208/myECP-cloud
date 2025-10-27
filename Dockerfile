@@ -26,7 +26,6 @@ RUN npm install --omit=dev
 # Copy production build
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/next.config.* ./  # optional if exists
 
 ENV NODE_ENV=production
 ENV PORT=8080
