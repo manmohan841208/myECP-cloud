@@ -108,7 +108,7 @@ export default function CreateProfile() {
             </b>
           </div>
 
-          <Card className="customCard flex w-full flex-col gap-3 px-6 py-3 sm:flex-row md:p-6">
+          <Card className="customCard flex w-full flex-col gap-3 lg:px-6 py-3 sm:flex-row md:p-6">
             <div className="flex w-full flex-col gap-4">
               <div className="flex flex-col gap-4 sm:flex-row">
                 <div className="sm:w-1/2">
@@ -163,7 +163,7 @@ must match our records."
             </div>
           </Card>
 
-          <Card className="customCard flex w-full gap-3 px-6 md:p-6">
+          <Card className="customCard flex w-full gap-3 lg:px-6 md:p-6">
             <div className="flex w-full flex-col gap-4">
               <div className="flex flex-col gap-4 sm:flex-row">
                 <div className="sm:w-1/2">
@@ -191,7 +191,7 @@ must match our records."
             </div>
           </Card>
 
-          <Card className="customCard flex flex-col px-6 py-4 sm:p-6">
+          <Card className="customCard flex flex-col lg:px-6 py-4 sm:p-6">
             <div className="flex flex-col gap-4">
               <div className="flex gap-2">
                 <div className="bg-[#000f73] px-[12px] py-1 text-xl text-white">

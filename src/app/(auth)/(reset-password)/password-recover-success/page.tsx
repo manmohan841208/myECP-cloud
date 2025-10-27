@@ -13,6 +13,7 @@ const PasswordSuccessfullRecoverPage = () => {
         <div className="flex flex-col p-6 !pb-0 gap-4">
           <CustomAlert
             type="success"
+             className='mb-2'
             description="Your password has been reset successfully for MyECP account."
           />
 

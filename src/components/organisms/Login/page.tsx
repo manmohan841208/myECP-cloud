@@ -150,7 +150,7 @@ const Login = () => {
     <div className="mx-auto flex w-full max-w-[1152px] flex-col gap-4">
       {isLoading && <Loader className="mx-auto mb-4" />}
       <section className="flex w-full gap-4">
-        <Card className="flex min-h-[373px] w-full flex-col justify-between !p-3 lg:max-h-[373px] lg:max-w-[410px]">
+<Card className="flex min-h-[373px] w-full flex-col justify-between !p-3 lg:max-w-[410px]">
           <div>
             {showError && (
               <CustomAlert type="error" description={errorMessage} />
@@ -171,6 +171,7 @@ const Login = () => {
                   // }
                   // value={UserName}
                   {...register('UserName')}
+                  className='w-full'
                 />
                 {errors.UserName && (
                   <p className="text-red-500">{errors.UserName.message}</p>
@@ -197,6 +198,7 @@ const Login = () => {
                 <InputField
                   label={USER_PASSWORD_LABEL}
                   type="password"
+                  className='w-full'
                   // onChange={(e: any) =>
                   //   dispatch(
                   //     setPassword(e.target.value),
@@ -290,12 +292,12 @@ const Login = () => {
 
           {/* <p className='text-sm text-black hidden sm:text-[12px] sm:block'>
             </p> */}
-          {/* <div className="hidden w-full text-white sm:block lg:hidden">
+          <div className="hidden w-full text-white sm:block lg:hidden">
             Lorem ipsum dolor sit, amet consectetur adipisicing elit. Natus,
             maxime! Lorem ipsum dolor sit amet consectetur, adipisicing elit.
             Dolorum, quo deleniti itaque cupiditate vero nihil blanditiis
             exercitationem, nisi
-          </div> */}
+          </div>
 
           <div className="flex w-full flex-col gap-6 pb-[14px] lg:flex-row lg:justify-evenly lg:gap-2">
             {/* Column 1 - Dummy Card Image + Button + Learn More */}

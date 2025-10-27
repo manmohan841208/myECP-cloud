@@ -124,7 +124,7 @@ export default function RecoverUserIDPage() {
   };
 
   return (
-    <div className="p-4 !text-base md:px-16">
+    <div className="mx-auto max-w-[1152px] p-4 !text-base">
       <Card
         className="w-full bg-[var(--color-white)] !p-0 md:w-[74.65%]"
         header="Forgot User ID?"
@@ -132,7 +132,7 @@ export default function RecoverUserIDPage() {
         {isLoading && <Loader className="mx-auto mb-4" />}
         <div className="flex flex-col p-6 sm:gap-4">
           {captchaVerify && (showCredentialError || showCaptchaError) && (
-            <CustomAlert type="error" description={captchaVerify} />
+            <CustomAlert type="error" description={captchaVerify} className='mb-2'/>
           )}
 
           {showError && <CustomAlert type="error" description={errorMessage} />}
@@ -158,7 +158,7 @@ export default function RecoverUserIDPage() {
                   name="LastName"
                   // value={form.LastName}
                   className={
-                    showCredentialError ? 'text-[var(--text-error)]' : ''
+                    showCredentialError ? 'text-[var(--text-error)] w-full' : 'w-full'
                   }
                 />
               </div>
@@ -168,7 +168,7 @@ export default function RecoverUserIDPage() {
                   label="Last 5 Digits of SSN"
                   mandantory
                   className={
-                    showCredentialError ? 'text-[var(--text-error)]' : ''
+                    showCredentialError ? 'text-[var(--text-error)] w-full' : 'w-full'
                   }
                   {...register('SSNLast5')}
                   error={errors.SSNLast5?.message}
@@ -185,7 +185,7 @@ export default function RecoverUserIDPage() {
                   label="Date of Birth"
                   mandantory
                   className={
-                    showCredentialError ? 'text-[var(--text-error)]' : ''
+                    showCredentialError ? 'text-[var(--text-error)] w-full' : 'w-full'
                   }
                   {...register('dob')}
                   error={errors.dob?.message}
@@ -213,7 +213,7 @@ export default function RecoverUserIDPage() {
                   </Button>
                 </div>
 
-                <div className="w-1/2">
+                <div className="w-2/3 sm:w-2/3 md:w-1/2 lg:w-1/2 ">
                   <InputField
                     placeholder="Enter Captcha Code"
                     {...register('captchaInput')}
@@ -221,7 +221,7 @@ export default function RecoverUserIDPage() {
                     name="captchaInput"
                     onChange={(e) => handleCaptchaChange(e.target.value)}
                     className={
-                      showCaptchaError ? 'text-[var(--text-error)]' : ''
+                      showCaptchaError ? 'text-[var(--text-error)] w-full' : 'w-full'
                     }
                     iconRight={showCaptchaError ? NotSecure : ''}
                   />

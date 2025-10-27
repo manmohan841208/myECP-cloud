@@ -12,7 +12,7 @@ export default function SuccessRecoverUserIDPage() {
     (state: RootState) => state.forgotUserName.UserName,
   );
   return (
-    <div className="w-full px-4 py-4 !text-base md:px-16">
+      <div className="mx-auto max-w-[1152px] p-4 !text-base ">
       <Card
         className="w-full bg-[var(--color-white)] !p-0 md:w-[74.65%]"
         header="Confirmation"

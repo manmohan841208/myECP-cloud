@@ -68,20 +68,20 @@ const ResetPasswordPage = () => {
   };
 
   return (
-    <div className="p-4 !text-base md:px-16">
+    <div className="mx-auto max-w-[1152px] p-4 !text-base">
       <Card
         className="w-full bg-[var(--color-white)] !p-0 md:w-[74.65%]"
         header={showSuccessAlert ? 'MyECP Password Reset' : 'For Your Security'}
       >
         <div className="flex flex-col p-6 !pb-0 sm:gap-4">
           {showAlert ? (
-            <CustomAlert type="error" description={errorMessage} />
+            <CustomAlert type="error" description={errorMessage}  className='mb-2'/>
           ) : (
             ''
           )}
 
           {showSuccessAlert ? (
-            <CustomAlert type="success" description={successMessage} />
+            <CustomAlert type="success" description={successMessage}  className='mb-2'/>
           ) : (
             ''
           )}
@@ -96,7 +96,7 @@ const ResetPasswordPage = () => {
           )}
 
           {showSuccessAlert ? null : (
-            <Card className="customCard flex w-full flex-col gap-3 px-6 py-3 sm:flex-row md:p-6">
+            <Card className="customCard flex flex-col gap-3 lg:px-6 py-3 sm:flex-row md:p-6">
               <div className="w-full sm:w-1/2">
                 <InputField
                   label="New Password"
@@ -104,6 +104,7 @@ const ResetPasswordPage = () => {
                   name="NewPassword"
                   onChange={handleChange}
                   value={form.NewPassword}
+                  className='w-full'
                 />
               </div>
 
@@ -116,6 +117,7 @@ const ResetPasswordPage = () => {
                   onChange={handleChange}
                   value={form.ConfirmPassword}
                   error={pwdNotSame ? pwdNotSame : undefined}
+                  className='w-full'
                 />
               </div>
             </Card>

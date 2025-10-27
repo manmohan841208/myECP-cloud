@@ -71,13 +71,13 @@ const ForYourSecurityPage = () => {
   };
 
   return (
-    <div className="p-4 !text-base md:px-16">
+    <div className="mx-auto max-w-[1152px] p-4 !text-base">
       <Card
-        className="w-full bg-[var(--color-white)] !p-0 md:w-[74.65%]"
+        className="w-full bg-[var(--color-white)] !p-0 md:max-w-[860px]"
         header="For Your Security"
       >
         <div className="flex flex-col p-6 !pb-0 sm:gap-4">
-          {showAlert && <CustomAlert type="error" description={errorMessage} />}
+          {showAlert && <CustomAlert type="error" description={errorMessage}  className='mb-2'/>}
 
           <div className="flex justify-end">
             <b>
@@ -86,7 +86,9 @@ const ForYourSecurityPage = () => {
             </b>
           </div>
 
-          <p>
+        <div  className=' flex flex-col gap-3 '>
+
+          <p className='text-sm sm:!text-base'>
             To verify and protect your account, please answer your security
             questions.
           </p>
@@ -131,20 +133,23 @@ const ForYourSecurityPage = () => {
             </div>
           </Card>
 
-          <div className="flex items-center justify-end gap-2 pb-4">
-            <Button variant="outline" onClick={() => router.back()}>
+          <div className="flex items-center justify-end gap-2 mb-4 h-10">
+            <Button variant="outline" className='h-full' onClick={() => router.back()}>
               Cancel
             </Button>
 
             <Button
               variant={!isFormValid ? 'disable' : 'primary'}
-              className="disabled:cursor-not-allowed disabled:opacity-50"
+              className="disabled:cursor-not-allowed disabled:opacity-50 h-full"
               disabled={!isFormValid}
               onClick={handleSubmit}
             >
               Reset Password
             </Button>
           </div>
+
+          </div>
+
         </div>
       </Card>
     </div>

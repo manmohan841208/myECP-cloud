@@ -37,6 +37,7 @@ const ForYourSecurityPage = () => {
           {showAlert && (
             <CustomAlert
               type="error"
+               className='mb-2'
               description="The information you entered does not match our records. You have 2 attempts remaining. Security questions are selected at random. The below questions may have changed "
             />
           )}

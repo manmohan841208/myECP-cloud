@@ -25,7 +25,7 @@ const ResetPasswordPage = () => {
             </b>
           </div>
 
-          <Card className="customCard flex w-full flex-col gap-3 px-6 py-3 sm:flex-row md:p-6">
+          <Card className="customCard flex w-full flex-col gap-3 lg:px-6 py-3 sm:flex-row md:p-6">
             <div className="w-full sm:w-1/2">
               <InputField
                 label="New Password"
