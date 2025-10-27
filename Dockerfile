@@ -1,33 +1,47 @@
-# Step 1: Use an official Node.js image
-FROM node:18-alpine AS builder
+# -----------------------------------------------------------
+# STEP 1: Build Stage
+# -----------------------------------------------------------
+# Use Debian-based Node.js image to avoid sharp build issues
+FROM node:20-bullseye AS builder
  
-# Step 2: Set the working directory
+# Set working directory
 WORKDIR /app
-RUN npm i -D eslint-config-prettier
-RUN npm install --save-dev @types/tailwindcss
  
-# Step 3: Copy package files and install dependencies
+# Copy package files first (for caching)
 COPY package*.json ./
-RUN npm install
  
-# Step 4: Copy all source code and build the Next.js app
+# Install all dependencies including devDependencies
+RUN npm ci
+ 
+# Copy all source code
 COPY . .
+ 
+# Build the Next.js app
 RUN npm run build
  
-# Step 5: Use a lightweight Node image for production
-FROM node:18-alpine AS runner
+ 
+# -----------------------------------------------------------
+# STEP 2: Production Runner
+# -----------------------------------------------------------
+FROM node:20-bullseye AS runner
+ 
 WORKDIR /app
  
-# Only copy necessary build output and dependencies
+# Copy only the necessary files for runtime
 COPY --from=builder /app/package*.json ./
-RUN npm install --omit=dev
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
 COPY --from=builder /app/next.config.js ./
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next ./.next
  
-# Set environment variable for Next.js
+# Install only production dependencies
+RUN npm ci --omit=dev
+ 
+# Set environment variables
 ENV NODE_ENV=production
+ENV PORT=3000
+ 
+# Expose the application port
 EXPOSE 3000
  
-# Start the app
+# Start the Next.js app
 CMD ["npm", "start"]
