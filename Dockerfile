@@ -7,7 +7,6 @@ WORKDIR /app
 COPY package*.json ./
 
 # ✅ Auto-fix minor JSON syntax issue (missing comma) before npm install
-# This ensures package.json is valid even if a comma is missing after "fi"
 RUN sed -i 's/fi\"/fi\",/' package.json
 
 RUN npm install
@@ -22,16 +21,15 @@ RUN npm run build
 FROM node:20-bullseye AS runner
 WORKDIR /app
 
-# Copy only necessary files for runtime
 COPY --from=builder /app/package*.json ./
 RUN npm install --omit=dev
 
-# Copy built app and configs
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/next.config.* ./
 
 ENV NODE_ENV=production
-EXPOSE 3000
+ENV PORT=8080          # ✅ Add this line for Cloud Run
+EXPOSE 8080            # ✅ Cloud Run expects port 8080
 
 CMD ["npm", "start"]
