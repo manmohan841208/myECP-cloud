@@ -5,6 +5,11 @@ WORKDIR /app
 
 # Copy package files and install dependencies
 COPY package*.json ./
+
+# ✅ Auto-fix minor JSON syntax issue (missing comma) before npm install
+# This ensures package.json is valid even if a comma is missing after "fi"
+RUN sed -i 's/fi\"/fi\",/' package.json
+
 RUN npm install
 
 # Copy the rest of the project files
