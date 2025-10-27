@@ -6,7 +6,7 @@ WORKDIR /app
 # Copy package files and install dependencies
 COPY package*.json ./
 
-# ✅ Skip npm ci (since no package-lock.json) and just install normally
+# Use npm install (works when package-lock.json is missing or out-of-sync)
 RUN npm install
 
 # Copy the rest of the project files
@@ -19,19 +19,18 @@ RUN npm run build
 FROM node:20-bullseye AS runner
 WORKDIR /app
 
-# Copy only the needed files for production
+# Copy only the built app and package files required for runtime
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/next.config.* ./
 
-# Install only production dependencies
+# Install only production deps
 RUN npm install --omit=dev
 
-# ✅ Cloud Run expects your app to listen on port 8080
+# Cloud Run expects port 8080
 ENV NODE_ENV=production
 ENV PORT=8080
 EXPOSE 8080
 
-# ✅ Start your app
 CMD ["npm", "start"]
