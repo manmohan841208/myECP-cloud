@@ -1,13 +1,13 @@
 # ---- Step 1: Build Stage ----
 FROM node:20-bullseye AS builder
-
 WORKDIR /app
 
-# Copy package files and install dependencies
+# Copy package files
 COPY package*.json ./
 
-# Use npm install (works when package-lock.json is missing or out-of-sync)
-RUN npm install
+# Try npm ci (fast+deterministic). If it fails (no lock or mismatch), fall back to npm install.
+# This avoids failing the build when package-lock.json is missing or out of sync.
+RUN npm ci || npm install
 
 # Copy the rest of the project files
 COPY . .
@@ -19,7 +19,7 @@ RUN npm run build
 FROM node:20-bullseye AS runner
 WORKDIR /app
 
-# Copy only the built app and package files required for runtime
+# Copy only necessary built files and package info
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
@@ -28,7 +28,7 @@ COPY --from=builder /app/next.config.* ./
 # Install only production deps
 RUN npm install --omit=dev
 
-# Cloud Run expects port 8080
+# Cloud Run expects PORT 8080
 ENV NODE_ENV=production
 ENV PORT=8080
 EXPOSE 8080
