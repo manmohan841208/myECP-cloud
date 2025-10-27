@@ -3,31 +3,35 @@ FROM node:20-bullseye AS builder
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy package.json (ignore package-lock.json if not present)
+COPY package.json ./
 
-# Install dependencies (no ci!)
+# Install dependencies
 RUN npm install
 
-# Copy source code
+# Copy rest of the project
 COPY . .
 
-# Build Next.js
+# Build the Next.js app
 RUN npm run build
 
 # ---- Step 2: Production Stage ----
 FROM node:20-bullseye AS runner
 WORKDIR /app
 
-COPY --from=builder /app/package*.json ./
+# Copy only required files
+COPY --from=builder /app/package.json ./
 RUN npm install --omit=dev
 
+# Copy production build
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/next.config.* ./
+COPY --from=builder /app/next.config.* ./  # optional if exists
 
 ENV NODE_ENV=production
 ENV PORT=8080
+
 EXPOSE 8080
 
+# ✅ Start Next.js on the Cloud Run expected port
 CMD ["npm", "start"]
