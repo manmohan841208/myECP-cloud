@@ -6,9 +6,7 @@ WORKDIR /app
 # Copy package files and install dependencies
 COPY package*.json ./
 
-# ✅ Auto-fix minor JSON syntax issue (missing comma) before npm install
-RUN sed -i 's/fi\"/fi\",/' package.json
-
+# ✅ Skip npm ci (since no package-lock.json) and just install normally
 RUN npm install
 
 # Copy the rest of the project files
@@ -21,15 +19,19 @@ RUN npm run build
 FROM node:20-bullseye AS runner
 WORKDIR /app
 
+# Copy only the needed files for production
 COPY --from=builder /app/package*.json ./
-RUN npm install --omit=dev
-
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/next.config.* ./
 
-ENV NODE_ENV=production
-ENV PORT=8080          # ✅ Add this line for Cloud Run
-EXPOSE 8080            # ✅ Cloud Run expects port 8080
+# Install only production dependencies
+RUN npm install --omit=dev
 
+# ✅ Cloud Run expects your app to listen on port 8080
+ENV NODE_ENV=production
+ENV PORT=8080
+EXPOSE 8080
+
+# ✅ Start your app
 CMD ["npm", "start"]
