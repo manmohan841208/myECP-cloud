@@ -1,9 +1,12 @@
 import ProtectedRoute from '@/templates/protectedroutes';
+import NotAvailable from '../notAvailable';
 
 export default function AccountSummary() {
   return (
     <ProtectedRoute>
-      <div>Welcome to the account summary.</div>
+      <div>
+        <NotAvailable />
+      </div>
     </ProtectedRoute>
   );
 }

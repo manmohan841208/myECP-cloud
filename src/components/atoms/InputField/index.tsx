@@ -13,6 +13,7 @@ interface InputFieldProps extends React.ComponentProps<'input'> {
   mandantory?: boolean;
   help?: string;
   helpWidth?: string | number;
+  placeholder?: string;
 }
 
 const InputField: React.FC<InputFieldProps> = ({
@@ -24,17 +25,18 @@ const InputField: React.FC<InputFieldProps> = ({
   className,
   help,
   helpWidth,
+  placeholder = '',
   ...props
 }) => {
   const hasError = error !== undefined;
 
   return (
-    <div className="flex flex-col gap-2 ">
+    <div className="flex flex-col gap-2">
       {/* Render label if it's not undefined, and apply fixed height */}
       {label !== undefined && (
         <label
           className={cn(
-            'flex h-5 items-center text-sm font-medium ', // Fixed height added here
+            'flex h-5 items-center text-sm font-medium', // Fixed height added here
             hasError ? 'text-[var(--text-error)]' : 'text-[var(--text)]',
           )}
         >
@@ -74,6 +76,7 @@ const InputField: React.FC<InputFieldProps> = ({
             className,
           )}
           aria-invalid={hasError}
+          placeholder={placeholder}
           {...props}
         />
         {iconRight && (

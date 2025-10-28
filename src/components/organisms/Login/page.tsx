@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { type ReactElement, useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import Card from '@/components/atoms/Card';
 import Image from '@/components/atoms/Image';
@@ -50,6 +50,8 @@ import {
   login as loggedIn,
   setAuthFromStorage,
 } from '@/store/slices/authSlice';
+import { useGetPromotionsQuery } from '@/store/services/bannerPromotionsApi';
+import { generatePromotionImages } from '@/components/molecules/PromotionBanners';
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -60,6 +62,8 @@ const Login = () => {
   const [loginUser, { isLoading, error }] = useLoginMutation();
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const { data: promotionData } = useGetPromotionsQuery(1);
+  const [images, setImages] = useState<ReactElement[]>([]);
 
   const {
     register,
@@ -67,6 +71,9 @@ const Login = () => {
     formState: { errors, isValid },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      UserName: UserName ? UserName : '', // 👈 set your default value
+    },
   });
 
   useEffect(() => {
@@ -80,10 +87,18 @@ const Login = () => {
     }
   }, [dispatch]);
 
+  useEffect(() => {
+    if (!isLoading && promotionData) {
+      const baseUrl =
+        process.env.NEXT_PUBLIC_API_BASE_URL + '/promotion-images?id=';
+      const generatedImages = generatePromotionImages(promotionData, baseUrl);
+      setImages(generatedImages);
+    }
+  }, [promotionData, isLoading]);
+
   const router = useRouter();
 
   const remeberDeviceId = localStorage.getItem('rememberDevice');
-  console.log('remeberDeviceId', !remeberDeviceId);
 
   const handleLogin = async (data: any) => {
     dispatch(setUserID(data.UserName));
@@ -96,12 +111,10 @@ const Login = () => {
       }).unwrap();
       localStorage.setItem('userInfo', JSON.stringify(result));
       localStorage.setItem('token', result?.Token);
-      if (
-        rememberMe &&
-        (!result?.Question || result?.Question === '' || !result?.QuestionID)
-      ) {
-        setCookie('userName', result?.UserName, 30 * 24 * 60 * 60); // 30 days
+      if (rememberMe) {
+        setCookie('userName', data.UserName, 30 * 24 * 60 * 60); // 30 days
       } else if (!rememberMe) {
+        dispatch(setUserID(''));
         removeCookie('userName'); // Remove cookie
       }
       if (result?.IsSecurityQuestionsNeeded) {
@@ -124,33 +137,12 @@ const Login = () => {
     }
   };
 
-  const images = [
-    <Image
-      src={BannerImage}
-      alt="Banner 1"
-      className="rounded-[8px]"
-      key="1"
-    />,
-    <Image
-      src={BannerImage}
-      alt="Banner 2"
-      className="rounded-[8px]"
-      key="2"
-    />,
-    <Image
-      src={BannerImage2}
-      alt="Banner 3"
-      className="rounded-[8px]"
-      key="3"
-    />,
-  ];
-
   return (
     // Center horizontally (by width) on all screens while keeping max-width:1152px
     <div className="mx-auto flex w-full max-w-[1152px] flex-col gap-4">
       {isLoading && <Loader className="mx-auto mb-4" />}
       <section className="flex w-full gap-4">
-<Card className="flex min-h-[373px] w-full flex-col justify-between !p-3 lg:max-w-[410px]">
+        <Card className="flex min-h-[373px] w-full flex-col justify-between !p-3 lg:max-w-[410px]">
           <div>
             {showError && (
               <CustomAlert type="error" description={errorMessage} />
@@ -171,7 +163,7 @@ const Login = () => {
                   // }
                   // value={UserName}
                   {...register('UserName')}
-                  className='w-full'
+                  className="w-full"
                 />
                 {errors.UserName && (
                   <p className="text-red-500">{errors.UserName.message}</p>
@@ -198,7 +190,7 @@ const Login = () => {
                 <InputField
                   label={USER_PASSWORD_LABEL}
                   type="password"
-                  className='w-full'
+                  className="w-full"
                   // onChange={(e: any) =>
                   //   dispatch(
                   //     setPassword(e.target.value),

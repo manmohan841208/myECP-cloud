@@ -42,10 +42,11 @@ export const store = configureStore({
   reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: {
-        // Ignore redux-persist actions
-        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
-      },
+      // serializableCheck: {
+      //   // Ignore redux-persist actions
+      //   ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+      // },
+      serializableCheck: false,
     }).concat(authApi.middleware),
 });
 

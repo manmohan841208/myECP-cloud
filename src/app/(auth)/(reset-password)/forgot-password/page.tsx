@@ -17,13 +17,15 @@ import {
   forgotPasswordSchema,
   type ForgotPasswordFormValues,
 } from '@/schemas/forgotPasswordSchema';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CANCEL, REQUIRED_FIELDS } from '@/constants/commonConstants';
 import { Loader } from '@/components/atoms/Loader';
 import { FORGOT_PASSWORD } from '@/constants/forgotPasswordConstants';
 import { PLEASE_ENTER_THE_STRING_AS_SHOWN_ABOVE } from '@/constants/forgotUserIdConstants';
 import { set } from 'zod';
+import DatePicker from '@/components/atoms/Calendar/page';
+import { format } from 'date-fns';
 
 export default function ForgotUserIdPage() {
   const [forgotPassword, { isLoading }] = useForgotPasswordMutation();
@@ -45,12 +47,12 @@ export default function ForgotUserIdPage() {
   const [errorMessage, setErrorMessage] = useState('');
 
   const dob = `${form.DOB_Year}-${form.DOB_Month}-${form.DOB_Day}`;
-  const isFormValid = form.UserName && form.SSNLast5 && dob && captchaVerify;
 
   const [trigger, { data: blob, isFetching }] = useLazyGetCaptchaImageQuery();
   const [captchaText, setCaptchaText] = useState('');
 
   const {
+    control,
     register,
     handleSubmit,
     formState: { errors, isValid },
@@ -77,8 +79,10 @@ export default function ForgotUserIdPage() {
     setShowError(false);
   };
 
-  const handleDOBChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const [year, month, day] = e.target.value.split('-');
+  const handleDOBChange = (date: any) => {
+    const [month, day, year] = date.split('/');
+    setShowError(false);
+    setErrorMessage('');
     setForm((prev) => ({
       ...prev,
       DOB_Year: year,
@@ -96,7 +100,7 @@ export default function ForgotUserIdPage() {
     }
 
     const payload: any = {
-      LastName: data.UserName,
+      UserName: data.UserName,
       SSNLast5: data.SSNLast5,
       DOB_Day: form.DOB_Day,
       DOB_Month: form.DOB_Month,
@@ -105,6 +109,7 @@ export default function ForgotUserIdPage() {
 
     try {
       const response: any = await forgotPassword(payload).unwrap();
+      localStorage.setItem('forgotPwdUserName', data.UserName);
       dispatch(setForgotPWDSecurityQuestions(response));
       route.push('/for-your-security'); // Navigate to next step
     } catch (err: any) {
@@ -131,9 +136,19 @@ export default function ForgotUserIdPage() {
         {isLoading && <Loader className="mx-auto mb-4" />}
         <div className="flex flex-col p-6 sm:gap-4">
           {(showCredentialError || showCaptchaError) && captchaVerify && (
-            <CustomAlert type="error" description={captchaVerify}  className='mb-2'/>
+            <CustomAlert
+              type="error"
+              description={captchaVerify}
+              className="mb-2"
+            />
           )}
-          {showError && <CustomAlert type="error" description={errorMessage}  className='mb-2'/>}
+          {showError && (
+            <CustomAlert
+              type="error"
+              description={errorMessage}
+              className="mb-2"
+            />
+          )}
 
           <div className="flex justify-end">
             <b>
@@ -146,7 +161,7 @@ export default function ForgotUserIdPage() {
             className="flex flex-col gap-4"
             onSubmit={handleSubmit((data: any) => handleValidate(data))}
           >
-          <Card className="customCard flex w-full flex-col gap-3 lg:px-6 py-3 sm:flex-row md:p-6">
+            <Card className="customCard flex w-full flex-col gap-3 py-3 sm:flex-row md:p-6 lg:px-6">
               <div className="w-full sm:w-1/2">
                 <InputField
                   label="User ID"
@@ -154,10 +169,11 @@ export default function ForgotUserIdPage() {
                   {...register('UserName')}
                   error={errors.UserName?.message}
                   name="UserName"
-                className={
-                  showCredentialError ? 'text-[var(--text-error)] w-full' : 'w-full'
-                }
-                  onChange={handleChange}
+                  className={
+                    showCredentialError
+                      ? 'w-full text-[var(--text-error)]'
+                      : 'w-full'
+                  }
                 />
               </div>
 
@@ -166,38 +182,60 @@ export default function ForgotUserIdPage() {
                   label="Last 5 Digits of SSN"
                   mandantory
                   className={
-                  showCredentialError ? 'text-[var(--text-error)] w-full' : 'w-full'
-                }
+                    showCredentialError
+                      ? 'w-full text-[var(--text-error)]'
+                      : 'w-full'
+                  }
                   {...register('SSNLast5')}
                   error={errors.SSNLast5?.message}
                   name="SSNLast5"
                   type="password"
                   maxLength={5}
-                  onChange={handleChange}
                 />
               </div>
             </Card>
 
-          <Card className="customCard flex w-full gap-3 lg:px-6 md:p-6">
+            <Card className="customCard flex w-full gap-3 md:p-6 lg:px-6">
               <div className="w-full sm:w-1/2">
-                <InputField
+                {/* <InputField
                   label="Date of Birth"
                   mandantory
                   className={
-                    showCredentialError ? 'text-[var(--text-error)] w-full' : 'w-full'
+                    showCredentialError
+                      ? 'w-full text-[var(--text-error)]'
+                      : 'w-full'
                   }
-                  {...register('dob')}
+                  {...register('dob', {
+                    onChange: (e: any) => {
+                      handleDOBChange(e);
+                    },
+                  })}
                   error={errors.dob?.message}
                   type="date"
                   name="dob"
                   value={dob}
-                  onChange={handleDOBChange}
                   max={new Date().toISOString().split('T')[0]}
+                /> */}
+                <Controller
+                  name="dob"
+                  control={control}
+                  render={({ field, fieldState }: any) => (
+                    <DatePicker
+                      value={field.value}
+                      onChange={(date) => {
+                        handleDOBChange(date ? format(date, 'MM/dd/yyyy') : '');
+                        field.onChange(date ? format(date, 'MM/dd/yyyy') : '');
+                      }}
+                      name={field.name}
+                      label="Date of Birth"
+                      error={fieldState.error?.message}
+                    />
+                  )}
                 />
               </div>
             </Card>
 
-          <Card className="customCard flex flex-col lg:px-6 py-4 md:p-6">
+            <Card className="customCard flex flex-col py-4 md:p-6 lg:px-6">
               <div className="flex flex-col gap-4">
                 <div className="flex gap-2">
                   <div className="bg-[#000f73] px-[12px] py-1 text-xl text-white">
@@ -212,15 +250,20 @@ export default function ForgotUserIdPage() {
                   </Button>
                 </div>
 
-              <div className="w-2/3 sm:w-2/3 md:w-1/2 lg:w-1/2 ">
+                <div className="w-2/3 sm:w-2/3 md:w-1/2 lg:w-1/2">
                   <InputField
                     placeholder="Enter Captcha Code"
-                    {...register('captchaInput')}
+                    {...register('captchaInput', {
+                      onChange: (e: any) => {
+                        handleCaptchaChange(e.target.value);
+                      },
+                    })}
                     error={errors.captchaInput?.message}
                     name="captchaInput"
-                    onChange={(e) => handleCaptchaChange(e.target.value)}
                     className={
-                      showCaptchaError ? 'text-[var(--text-error)] w-full' : 'w-full'
+                      showCaptchaError
+                        ? 'w-full text-[var(--text-error)]'
+                        : 'w-full'
                     }
                     iconRight={showCaptchaError ? NotSecure : ''}
                   />
