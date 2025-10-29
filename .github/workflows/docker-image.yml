@@ -25,11 +25,12 @@ jobs:
     - name: Configure Docker for Artifact Registry
       run: gcloud auth configure-docker europe-west1-docker.pkg.dev --quiet
 
-    # Step 4: Install dependencies and build Next.js app
+    # Step 4: Clean install dependencies and rebuild LightningCSS
     - name: Install dependencies and build Next.js
       run: |
-        npm ci
-        npm install --include=optional sharp
+        rm -rf node_modules package-lock.json
+        npm install
+        npm rebuild lightningcss
         npm run build --if-present
 
     # Step 5: Build Docker image (unique timestamp tag, no cache)
