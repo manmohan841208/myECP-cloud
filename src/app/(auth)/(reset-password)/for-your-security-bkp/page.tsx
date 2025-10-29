@@ -37,14 +37,13 @@ const ForYourSecurityPage = () => {
           {showAlert && (
             <CustomAlert
               type="error"
-               className='mb-2'
               description="The information you entered does not match our records. You have 2 attempts remaining. Security questions are selected at random. The below questions may have changed "
             />
           )}
 
           <div className="flex justify-end">
             <b>
-              <span className="px-1 text-[var(--text-error)]">*</span>Required
+              <span className="px-1 text-[var(--text-error)] !text-sm">*</span>Required
               Fields
             </b>
           </div>

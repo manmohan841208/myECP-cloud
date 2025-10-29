@@ -141,11 +141,11 @@ const Login = () => {
     // Center horizontally (by width) on all screens while keeping max-width:1152px
     <div className="mx-auto flex w-full max-w-[1152px] flex-col gap-4">
       {isLoading && <Loader className="mx-auto mb-4" />}
-      <section className="flex w-full gap-4">
-        <Card className="flex min-h-[373px] w-full flex-col justify-between !p-3 lg:max-w-[410px]">
+      <section className="flex w-full gap-4 ">
+        <Card className="flex  w-full flex-col justify-between !p-3 h-[410px] ">
           <div>
             {showError && (
-              <CustomAlert type="error" description={errorMessage} />
+              <CustomAlert type="error" description={errorMessage} className='mb-2'/>
             )}
             <form
               className="flex flex-col gap-4"
@@ -166,13 +166,13 @@ const Login = () => {
                   className="w-full"
                 />
                 {errors.UserName && (
-                  <p className="text-red-500">{errors.UserName.message}</p>
+                  <p className="text-(var(--color-red))">{errors.UserName.message}</p>
                 )}
                 <div className="flex items-center justify-end gap-1">
                   {FORGOT}
                   <Link
                     href="/forgot-userid"
-                    className="text-sm text-blue-600 hover:text-blue-800"
+                    className="text-sm text-[var(--color-link)]"
                   >
                     {USER_ID_LABEL}
                   </Link>
@@ -182,7 +182,7 @@ const Login = () => {
                     className="w-[120px] rounded-[4px] bg-black"
                     content="You may recover your User ID"
                   >
-                    <Image src={Tooltip} alt="tooltip icon" />
+                    <Image src={Tooltip} alt="tooltip icon" className='hidden lg:block'/>
                   </DynamicTooltip>
                 </div>
               </div>
@@ -201,13 +201,13 @@ const Login = () => {
                   {...register('password')}
                 />
                 {errors.password && (
-                  <p className="text-red-500">{errors.password.message}</p>
+                  <p className="text-(var(--color-red))">{errors.password.message}</p>
                 )}
                 <div className="flex items-center justify-end gap-1">
                   {FORGOT}
                   <Link
                     href="/forgot-password"
-                    className="text-sm text-blue-600 hover:text-blue-800"
+                    className="text-sm text-[var(--color-link)]"
                   >
                     {FORGOT_PASSWORD}
                   </Link>
@@ -217,7 +217,7 @@ const Login = () => {
                     className="w-[120px] rounded-[4px] bg-black"
                     content="You may recover your Password"
                   >
-                    <Image src={Tooltip} alt="tooltip icon" />
+                    <Image src={Tooltip} alt="tooltip icon" className='hidden lg:block'/>
                   </DynamicTooltip>
                   {/* </div> */}
                 </div>
@@ -246,27 +246,32 @@ const Login = () => {
           </div>
 
           <div className="mt-2 text-center text-sm">
-            <div className="flex items-center justify-center gap-1">
+            <div className="flex items-center justify-center gap-1 flex-col md:flex-row">
               {NEW_TO_MYECP}{' '}
-              <Link
-                href="/create-profile"
-                className="text-sm text-blue-600 hover:text-blue-800"
-              >
-                {PLEASE_REGISTER_HERE}
-              </Link>
+              <p className='flex justify-center items-center gap-1'>
+                Please
+                
+                <Link
+                  href="/create-profile"
+                  className="text-sm text-[var(--color-link)]"
+                >
+                   {PLEASE_REGISTER_HERE}
+                </Link>
+              
+              </p>
               <DynamicTooltip
                 side="right"
                 align="center"
                 className="w-[152px] rounded-[4px] bg-black"
                 content="Your MyECP profile is unique to MyECP.com"
               >
-                <Image src={Tooltip} alt="tooltip icon" />
+                <Image src={Tooltip} alt="tooltip icon" className='hidden lg:block'/>
               </DynamicTooltip>
             </div>
           </div>
         </Card>
 
-        <Card className="w-ull relative hidden max-h-[373px] overflow-hidden !p-0 shadow-lg lg:block">
+        <Card className="w-full relative hidden h-[410px] overflow-hidden !p-0 shadow-lg lg:block">
           <Carousel
             images={images}
             autoScroll
@@ -308,7 +313,7 @@ const Login = () => {
               </div>
               <Link
                 href="#"
-                className="text-sm text-blue-600 hover:text-blue-800"
+                className="text-sm text-[var(--color-link)]"
               >
                 {LEARN_MORE}
               </Link>
@@ -327,7 +332,7 @@ const Login = () => {
 
                 <Link
                   href="#"
-                  className="text-sm text-blue-600 hover:text-blue-800"
+                  className="text-[var(--color-link)]"
                 >
                   {SEE_REWARDS_TERMS_AND_CONDITIONS}
                 </Link>

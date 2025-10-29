@@ -82,14 +82,14 @@ export default function RecoverUserIDPage() {
         className="w-full bg-[var(--color-white)] !p-0 md:max-w-[860px]"
         header="Forgot User ID?"
       >
-        <div className="flex flex-col p-6 sm:gap-4">
+        <div className="flex flex-col p-4 gap-4">
           {captchaVerify && (showCredentialError || showCaptchaError) && (
             <CustomAlert type="error" description={captchaVerify}  className='mb-2'/>
           )}
 
           <div className="flex justify-end">
             <b>
-              <span className="px-1 text-[var(--text-error)]">*</span>Required
+              <span className="px-1 text-[var(--text-error)] !text-sm">*</span>Required
               Fields
             </b>
           </div>
@@ -150,7 +150,7 @@ export default function RecoverUserIDPage() {
           </Card>
 
           <Card className="customCard flex flex-col lg:px-6 py-4 md:p-6">
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-4">
               <div className="flex gap-2">
                 <div className="bg-[#000f73] px-[12px] py-1 text-xl text-white">
                   {captcha}

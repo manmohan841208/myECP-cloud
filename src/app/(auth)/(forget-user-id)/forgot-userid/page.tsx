@@ -123,18 +123,17 @@ export default function RecoverUserIDPage() {
         header="Forgot User ID?"
       >
         {isLoading && <Loader className="mx-auto mb-4" />}
-        <div className="flex flex-col p-6 sm:gap-4">
+        <div className="flex flex-col p-4 gap-4">
           {captchaVerify && (showCredentialError || showCaptchaError) && (
             <CustomAlert
               type="error"
               description={captchaVerify}
-              className="mb-2"
             />
           )}
           {showError && <CustomAlert type="error" description={errorMessage} />}
           <div className="flex justify-end">
-            <b>
-              <span className="px-1 text-[var(--text-error)]">*</span>
+            <b className='!text-[14px]'>
+              <span className="px-1 text-[var(--text-error)] ">*</span>
               {REQUIRED_FIELDS}
             </b>
           </div>
@@ -142,7 +141,7 @@ export default function RecoverUserIDPage() {
             className="flex flex-col gap-4"
             onSubmit={handleSubmit((data: any) => handleValidate(data))}
           >
-            <Card className="customCard flex w-full flex-col gap-3 px-6 py-3 sm:flex-row md:p-6">
+            <Card className="customCard flex w-full flex-col gap-3 py-3 sm:flex-row md:p-6 lg:px-6">
               <div className="w-full sm:w-1/2">
                 <InputField
                   label="Last Name"
@@ -175,8 +174,8 @@ export default function RecoverUserIDPage() {
                 />
               </div>
             </Card>
-            <Card className="customCard flex w-full gap-3 px-6 md:p-6">
-              <div className="w-full sm:w-1/2">
+            <Card className="customCard flex w-full gap-3 md:p-6 lg:px-6">
+              <div className="w-full sm:w-1/2" >
                 {/* <InputField
                   label="Date of Birth"
                   mandantory
@@ -214,8 +213,8 @@ export default function RecoverUserIDPage() {
                 />
               </div>
             </Card>
-            <Card className="customCard flex flex-col px-6 py-4 sm:p-6">
-              <div className="flex flex-col gap-2">
+            <Card className="customCard flex flex-col py-4 md:p-6 lg:px-6">
+              <div className="flex flex-col gap-4">
                 <div className="flex gap-2">
                   <div className="bg-[#000f73] px-[12px] py-1 text-xl text-white">
                     {captchaText || (isFetching ? 'Loading...' : '')}
@@ -227,7 +226,7 @@ export default function RecoverUserIDPage() {
                     <Image src={Relode} alt="relode-img" />
                   </Button>
                 </div>
-                <div className="w-2/3 sm:w-2/3 md:w-1/2 lg:w-1/2">
+                <div className="responsive-captcha w-2/3 sm:w-2/3 md:w-1/2 lg:w-1/2">
                   <InputField
                     placeholder="Enter Captcha Code"
                     {...register('captchaInput', {

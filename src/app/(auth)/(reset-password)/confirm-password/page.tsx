@@ -15,12 +15,12 @@ const ResetPasswordPage = () => {
         className="w-full bg-[var(--color-white)] !p-0 md:max-w-[860px]"
         header="Reset Password"
       >
-        <div className="flex flex-col p-6 !pb-0 sm:gap-4">
+        <div className="flex flex-col p-6 !pb-0 gap-4">
           {/* <CustomAlert type="error" description="Password not match" /> */}
 
           <div className="flex justify-end">
             <b>
-              <span className="px-1 text-[var(--text-error)]">*</span>Required
+              <span className="px-1 text-[var(--text-error)] !text-sm">*</span>Required
               Fields
             </b>
           </div>

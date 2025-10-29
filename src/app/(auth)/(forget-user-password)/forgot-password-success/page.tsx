@@ -86,14 +86,14 @@ export default function SuccessRecoverUserPasswordPage(){
         className="w-full bg-[var(--color-white)] !p-0 md:w-[74.65%]"
         header="Forgot User ID?"
       >
-        <div className="flex flex-col p-6 sm:gap-4">
+        <div className="flex flex-col p-4 gap-4">
           {captchaVerify && (showCredentialError || showCaptchaError) && (
             <CustomAlert type="error" description={captchaVerify}  className='mb-2'/>
           )}
 
           <div className="flex justify-end ">
             <b>
-              <span className="text-[var(--text-error)] px-1">*</span>Required Fields
+              <span className="text-[var(--text-error)] px-1 !text-sm">*</span>Required Fields
             </b>
           </div>
 
@@ -106,7 +106,7 @@ export default function SuccessRecoverUserPasswordPage(){
                 onChange={handleChange}
                 name="lastName"
                 value={form.lastName}
-                className={`${showCredentialError ? "text-[var(--text-error)]": ""}`}
+                className={`${showCredentialError ? "text-[var(--text-error)] w-full": "w-full"}`}
               />
             </div>
 
@@ -123,7 +123,7 @@ export default function SuccessRecoverUserPasswordPage(){
                  }
                  iconRight={ssnLengthError ? NotSecure : '' }
                  className={`${
-                  ssnLengthError || showCredentialError ? 'text-[var(--text-error)]' : ''
+                  ssnLengthError || showCredentialError ? 'text-[var(--text-error)] w-full' : 'w-full'
                  }`}
                  onChange={handleChange}
                  name="ssn"
@@ -139,7 +139,7 @@ export default function SuccessRecoverUserPasswordPage(){
               <InputField
                 label="Date of Birth"
                 mandantory={true}
-                className={`${showCredentialError ? "text-[var(--text-error)]": ""}`}
+                className={`${showCredentialError ? "text-[var(--text-error)] w-full": "w-full"}`}
                 error={showCredentialError ? '' : undefined}
                 type="date"
                 name="dob"
@@ -151,7 +151,7 @@ export default function SuccessRecoverUserPasswordPage(){
           </Card>
 
           <Card className="customCard md:p-6 lg:px-6 py-4 flex flex-col">
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-4">
               <div className="flex gap-2">
                 <div className="px-[12px] py-1 text-xl bg-[#000f73] text-white">{captcha}</div>
 
@@ -162,12 +162,13 @@ export default function SuccessRecoverUserPasswordPage(){
 
               <div className='w-1/2'>
                 <InputField
+                
                 placeholder="Enter Captcha Code"
                 value={form.captchaInput}
                 name="captchaInput"
                 onChange={handleChange}
                 error={showCaptchaError ? '' : undefined}
-                className={showCaptchaError ? 'text-[var(--text-error)]' : ''}
+                className={showCaptchaError ? 'text-[var(--text-error)] w-full' : 'w-full'}
                 iconRight={showCaptchaError ? NotSecure : ''}
                 />
                 

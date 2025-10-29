@@ -120,14 +120,13 @@ export default function SecurityForm() {
           {showError && (
             <CustomAlert
               type="error"
-              className="mt-2"
               description={errorMessage}
             />
           )}
 
           <div className="flex justify-end ">
-            <b>
-              <span className="px-1 text-[var(--text-error)]">*</span>
+            <b className='!text-[14px]'>
+              <span className="px-1 text-[var(--text-error)] ">*</span>
               {REQUIRED_FIELDS}
             </b>
           </div>
@@ -154,7 +153,7 @@ export default function SecurityForm() {
               />
 
               {errors.answer && (
-                <p className="mt-1 text-sm text-red-500">
+                <p className="mt-1 text-sm text-(var(--color-red))">
                   {errors.answer.message}
                 </p>
               )}

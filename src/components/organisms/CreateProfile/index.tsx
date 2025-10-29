@@ -98,12 +98,12 @@ export default function CreateProfile() {
           </div>
         </div>
 
-        <div className="flex flex-col p-6 sm:gap-4">
+        <div className="flex flex-col p-4 gap-4">
           {/* <CustomAlert type="error" description="custom error" /> */}
 
           <div className="flex justify-end">
             <b>
-              <span className="px-1 text-[var(--text-error)]">*</span>Required
+              <span className="px-1 text-[var(--text-error)] !text-sm">*</span>Required
               Fields
             </b>
           </div>

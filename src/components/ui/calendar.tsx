@@ -40,6 +40,7 @@ function Calendar({
           date.toLocaleString('default', { month: 'short' }),
         ...formatters,
       }}
+      
       classNames={{
         root: cn('w-fit', defaultClassNames.root),
         months: cn(
@@ -70,11 +71,11 @@ function Calendar({
           defaultClassNames.dropdowns,
         ),
         dropdown_root: cn(
-          'relative has-focus:border-ring border border-input shadow-xs has-focus:ring-ring/50 has-focus:ring-[3px] rounded-md',
+          'relative shadow-xs w-full rounded-md',
           defaultClassNames.dropdown_root,
         ),
         dropdown: cn(
-          'absolute bg-popover inset-0 opacity-0',
+          'absolute bg-popover w-full inset-0 opacity-0',
           defaultClassNames.dropdown,
         ),
         caption_label: cn(

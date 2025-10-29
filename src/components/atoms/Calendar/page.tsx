@@ -7,6 +7,7 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
 import { Calendar as cal } from '@/assets/svg';
 import { InputField } from '../InputField';
 
@@ -25,11 +26,20 @@ export default function DatePicker({
   label = 'Date of Birth',
   error,
 }: DatePickerProps) {
+  // Controlled state for the popover
+  const [open, setOpen] = useState(false);
+  
+  // Temporary state for the date inside the popover
+  const [tempDate, setTempDate] = useState<Date | undefined>(
+    value && /^\d{2}\/\d{2}\/\d{4}$/.test(value)
+      ? parse(value, 'MM/dd/yyyy', new Date())
+      : undefined
+  );
+  
   const [inputValue, setInputValue] = useState(value || '');
 
-  // ✅ Auto-insert slashes for MM/DD/YYYY
   const formatInput = (raw: string) => {
-    const digits = raw.replace(/\D/g, ''); // remove non-numeric
+    const digits = raw.replace(/\D/g, '');
     let formatted = digits;
 
     if (digits.length > 2) {
@@ -39,7 +49,7 @@ export default function DatePicker({
       formatted = formatted.slice(0, 5) + '/' + digits.slice(4);
     }
     if (digits.length > 8) {
-      formatted = formatted.slice(0, 10); // limit to MM/DD/YYYY
+      formatted = formatted.slice(0, 10);
     }
 
     return formatted;
@@ -49,15 +59,39 @@ export default function DatePicker({
     const rawValue = e.target.value;
     const formatted = formatInput(rawValue);
     setInputValue(formatted);
-    onChange?.(formatted);
+    // Do not trigger onChange for external forms until OK is clicked
   };
 
   const handleCalendarSelect = (selectedDate?: Date) => {
-    if (selectedDate) {
-      const formatted = format(selectedDate, 'MM/dd/yyyy');
+    setTempDate(selectedDate);
+  };
+  
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    // Reset temp date if popover is closing
+    if (!newOpen) {
+      setTempDate(
+        inputValue && /^\d{2}\/\d{2}\/\d{4}$/.test(inputValue)
+          ? parse(inputValue, 'MM/dd/yyyy', new Date())
+          : undefined
+      );
+    }
+  };
+
+  const handleOk = () => {
+    if (tempDate) {
+      const formatted = format(tempDate, 'MM/dd/yyyy');
       setInputValue(formatted);
       onChange?.(formatted);
+    } else {
+      setInputValue('');
+      onChange?.('');
     }
+    setOpen(false); // Close the popover
+  };
+
+  const handleCancel = () => {
+    setOpen(false); // Close the popover
   };
 
   const parsedDate =
@@ -66,10 +100,11 @@ export default function DatePicker({
       : undefined;
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <div className="w-full">
           <InputField
+            onClick={e => e.stopPropagation()}
             label={label}
             value={inputValue}
             placeholder="MM/DD/YYYY"
@@ -87,20 +122,29 @@ export default function DatePicker({
       >
         <Calendar
           mode="single"
-          selected={parsedDate}
-          onSelect={handleCalendarSelect}
+          selected={tempDate} // Use tempDate for the calendar display
+          onSelect={handleCalendarSelect} // Update tempDate on selection
           initialFocus
           captionLayout="dropdown"
           modifiersClassNames={{
             selected: 'outline-none rounded-full border-[2px] border-blue-500',
             today: 'font-bold',
           }}
-          className="bg-white text-black dark:bg-gray-800 dark:text-white"
+          className="bg-white text-black dark:bg-gray-800 "
           styles={{
             caption: { color: '#4B5563' },
             day: { padding: '0.5rem' },
           }}
         />
+        {/* Calendar Footer with Cancel and OK buttons */}
+        <div className="flex justify-end items-center h-[60px]">
+          <div  className='cursor-pointer px-5 text-[var(--color-blue)] ' onClick={handleCancel}>
+            Cancel
+          </div>
+          <div className='cursor-pointer px-5 text-[var(--color-blue)] ' onClick={handleOk}>
+            OK
+          </div>
+        </div>
       </PopoverContent>
     </Popover>
   );

@@ -98,25 +98,24 @@ const ForYourSecurityPage = () => {
         className="w-full bg-[var(--color-white)] !p-0 md:max-w-[860px]"
         header="For Your Security"
       >
-        <div className="flex flex-col p-6 !pb-0 sm:gap-4">
+        <div className="flex flex-col p-4 !pb-0 gap-4">
           {showAlert && (
             <CustomAlert
               type="error"
               description={errorMessage}
-              className="mb-2"
             />
           )}
           {isLoading && <Loader className="mx-auto mb-4" />}
 
           <div className="flex justify-end">
-            <b>
-              <span className="px-1 text-[var(--text-error)]">*</span>
+            <b className='!text-[14px]'>
+              <span className="px-1 text-[var(--text-error)] ">*</span>
               {REQUIRED_FIELDS}
             </b>
           </div>
 
-          <div className="flex flex-col gap-3">
-            <p className="text-sm sm:!text-base">
+          <div className="flex flex-col gap-4">
+            <p className="text-sm ">
               {TO_VERIFY_AND_PROTECT_YOUR_ACCOUNT}
             </p>
 
@@ -151,7 +150,7 @@ const ForYourSecurityPage = () => {
                         <p className="text-black">
                           {securityQuestions?.Question2Text}
                         </p>
-                        <span className="">*</span>
+                        <span className="text-[var(--text-error)]">*</span>
                       </div>
                     }
                     {...register('Answer2')}

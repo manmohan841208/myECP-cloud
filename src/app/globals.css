@@ -141,3 +141,8 @@
   border: 1px solid #042757;
 }
 
+@media (min-width: 640px) and (max-width: 767px) {
+  .responsive-captcha {
+    width: 50%;
+  }
+}

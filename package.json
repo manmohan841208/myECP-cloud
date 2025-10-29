@@ -5,9 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start -p 8080",
+    "start": "next start",
     "lint": "npm run eslint && npm run check-types",
-    "prepare": "husky install || true",
+    "prepare": "husky install",
     "check-types": "tsc --noemit",
     "test:watch": "jest --watch",
     "lint:fix": "eslint --max-warnings=0 --fix",

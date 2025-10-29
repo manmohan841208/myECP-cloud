@@ -36,7 +36,7 @@ export default function SuccessRecoverUserIDPage() {
             <hr className="border-[var(--text-disabled)]" />
 
             <div className="flex items-center justify-start gap-1 pt-3 pr-4 pb-2 pl-6">
-              <p>{YOUR_USERID_IS}</p> <b>{userName}</b>
+              <p>{YOUR_USERID_IS}</p> <p className='font-bold'>{userName}</p>
             </div>
           </div>
 
