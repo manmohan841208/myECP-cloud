@@ -62,7 +62,7 @@ const TwoFactorAuthPage = () => {
     resolver: zodResolver(twoFactorSchema),
     mode: 'onChange',
     defaultValues: {
-      otpOption: '', // initial empty value
+      otpOption: '',
     },
   });
 
@@ -121,8 +121,8 @@ const TwoFactorAuthPage = () => {
               />
             ))}
           <div className="flex justify-end pt-3">
-            <b className=' !text-[14px]'>
-              <span className="px-1 text-[var(--text-error)] ">*</span>
+            <b className="!text-[14px]">
+              <span className="px-1 text-[var(--text-error)]">*</span>
               {REQUIRED_FIELDS}
             </b>
           </div>
@@ -148,53 +148,72 @@ const TwoFactorAuthPage = () => {
                     onOtpOptionChange(value as 'Email' | 'SMS')
                   }
                 >
-                  {userData?.MobileNo ? (
+                  <div className={`flex items-center gap-3 pl-4`}>
                     <div
-                      className={`flex items-center gap-3 pl-4 ${!userData?.IsSMSOptIn ? '' : 'text-[var(--color-disabled-text)]'}`}
+                      className={`flex h-15 w-15 items-start justify-center ${userData?.IsSMSOptIn ? '' : 'text-[var(--color-disabled-text)]'}`}
                     >
-                      <div className="flex h-15 w-15 items-start justify-center">
-                        <Image
-                          src={Phone}
-                          alt="phone-img"
-                          className="opacity-35"
+                      <Image
+                        src={Phone}
+                        alt="phone-img"
+                        className="opacity-35"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="mobile" className="text-base font-bold">
+                        {PHONE}
+                      </Label>
+                      <div className="flex items-center justify-start gap-1">
+                        <RadioGroupItem
+                          value="SMS"
+                          id="mobile"
+                          checked={
+                            userData?.IsSMSOptIn && !userData?.IsTwoFAEmailOptIn
+                              ? true
+                              : false
+                          }
+                          disabled={!userData?.IsSMSOptIn}
                         />
+                        <span>
+                          {maskPhone(
+                            userData?.MobileNo
+                              ? userData?.MobileNo
+                              : '00000000000',
+                          )}
+                        </span>
                       </div>
-                      <div>
-                        <Label htmlFor="mobile" className="text-base font-bold">
-                          {PHONE}
-                        </Label>
-                        <div className="flex items-center justify-start gap-1">
-                          <RadioGroupItem value="SMS" id="mobile" />
-                          <span>{maskPhone(userData?.MobileNo)}</span>
-                        </div>
-                        <div className="pl-4">
-                          <p>
-                            {YOU_ARE_NOT_ENROLLED_TO_RECIEVE_2FA_CODE_VIA_TEXT}
-                          </p>
-                          <p>{YOU_CAN_ENROLL_BY_GOING_TO_MY_PROFILE_ANYTIME}</p>
-                        </div>
+                      <div className="pl-4">
+                        <p>
+                          {YOU_ARE_NOT_ENROLLED_TO_RECIEVE_2FA_CODE_VIA_TEXT}
+                        </p>
+                        <p>{YOU_CAN_ENROLL_BY_GOING_TO_MY_PROFILE_ANYTIME}</p>
                       </div>
                     </div>
-                  ) : null}
-
-                  {userData?.EmailAddress ? (
-                    <div className="flex items-center gap-3 pl-4">
-                      <div
-                        className={`flex h-15 w-15 items-center justify-center ${userData?.IsSMSOptIn ? '' : 'text-[var(--color-disabled-text)]'}`}
-                      >
-                        <Image src={Email} alt="email-img" />
-                      </div>
-                      <div>
-                        <Label htmlFor="email" className="text-base font-bold">
-                          {EMAIL}
-                        </Label>
-                        <div className="flex items-center justify-center gap-1">
-                          <RadioGroupItem value="Email" id="email" />
-                          <span>{maskEmail(userData?.EmailAddress)}</span>
-                        </div>
+                  </div>
+                  <div className="flex items-center gap-3 pl-4">
+                    <div
+                      className={`flex h-15 w-15 items-center justify-center ${userData?.IsTwoFAEmailOptIn ? '' : 'text-[var(--color-disabled-text)]'}`}
+                    >
+                      <Image src={Email} alt="email-img" />
+                    </div>
+                    <div>
+                      <Label htmlFor="email" className="text-base font-bold">
+                        {EMAIL}
+                      </Label>
+                      <div className="flex items-center justify-center gap-1">
+                        <RadioGroupItem
+                          value="Email"
+                          id="email"
+                          checked={
+                            userData?.IsTwoFAEmailOptIn && !userData?.IsSMSOptIn
+                              ? true
+                              : false
+                          }
+                          disabled={!userData?.IsTwoFAEmailOptIn}
+                        />
+                        <span>{maskEmail(userData?.EmailAddress)}</span>
                       </div>
                     </div>
-                  ) : null}
+                  </div>
                 </RadioGroup>
               </div>
 

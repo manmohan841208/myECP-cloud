@@ -58,10 +58,11 @@ const TwoFactAuthCodeEntryPage = () => {
   const {
     register,
     handleSubmit,
+    clearErrors,
     formState: { errors, isValid },
   } = useForm<VerifyOtpFormValues>({
     resolver: zodResolver(verifyOtpSchema),
-    mode: 'onChange',
+    mode: 'onBlur',
     defaultValues: {
       code: '',
     },
@@ -149,8 +150,8 @@ const TwoFactAuthCodeEntryPage = () => {
           )}
 
           <div className="flex justify-end pt-3">
-            <b className='!text-[14px]'>
-              <span className="px-1 text-[var(--text-error)] ">*</span>
+            <b className="!text-[14px]">
+              <span className="px-1 text-[var(--text-error)]">*</span>
               {REQUIRED_FIELDS}
             </b>
           </div>
@@ -186,6 +187,9 @@ const TwoFactAuthCodeEntryPage = () => {
                       }
                       // className="w-full border-black text-base text-black sm:w-1/2"
                       inputMode="numeric"
+                      onFocus={() => {
+                        clearErrors('code');
+                      }}
                       maxLength={6}
                       {...register('code', {
                         onChange: handleCodeChange,

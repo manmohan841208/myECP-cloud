@@ -43,23 +43,16 @@ const ForYourSecurityPage = () => {
   const {
     register,
     handleSubmit,
+    clearErrors,
     formState: { errors, isValid },
   } = useForm<SecurityQuestionsFormValues>({
     resolver: zodResolver(securityQuestionsSchema),
-    mode: 'onChange',
+    mode: 'onBlur',
   });
-
-  const isFormValid = form.Answer1 && form.Answer2;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setErrorMessage('');
     setShowAlert(false);
-    const { name, value } = e.target;
-    setForm((prev: any) => ({
-      ...prev,
-      [name]: value,
-      UserName: localStorage.getItem('forgotPwdUserName') || '',
-    }));
   };
 
   const validate = async (data: SecurityQuestionsFormValues) => {
@@ -98,26 +91,19 @@ const ForYourSecurityPage = () => {
         className="w-full bg-[var(--color-white)] !p-0 md:max-w-[860px]"
         header="For Your Security"
       >
-        <div className="flex flex-col p-4 !pb-0 gap-4">
-          {showAlert && (
-            <CustomAlert
-              type="error"
-              description={errorMessage}
-            />
-          )}
+        <div className="flex flex-col gap-4 p-4 !pb-0">
+          {showAlert && <CustomAlert type="error" description={errorMessage} />}
           {isLoading && <Loader className="mx-auto mb-4" />}
 
           <div className="flex justify-end">
-            <b className='!text-[14px]'>
-              <span className="px-1 text-[var(--text-error)] ">*</span>
+            <b className="!text-[14px]">
+              <span className="px-1 text-[var(--text-error)]">*</span>
               {REQUIRED_FIELDS}
             </b>
           </div>
 
           <div className="flex flex-col gap-4">
-            <p className="text-sm ">
-              {TO_VERIFY_AND_PROTECT_YOUR_ACCOUNT}
-            </p>
+            <p className="text-sm">{TO_VERIFY_AND_PROTECT_YOUR_ACCOUNT}</p>
 
             <form
               className="flex flex-col gap-4"
@@ -134,7 +120,12 @@ const ForYourSecurityPage = () => {
                         <span className="text-[var(--text-error)]">*</span>
                       </div>
                     }
-                    {...register('Answer1')}
+                    {...register('Answer1', {
+                      onChange: handleChange,
+                    })}
+                    onFocus={() => {
+                      clearErrors('Answer1');
+                    }}
                     error={errors.Answer1?.message}
                     className="w-full border-black text-base text-black sm:w-1/2"
                     name="Answer1"
@@ -153,7 +144,12 @@ const ForYourSecurityPage = () => {
                         <span className="text-[var(--text-error)]">*</span>
                       </div>
                     }
-                    {...register('Answer2')}
+                    {...register('Answer2', {
+                      onChange: handleChange,
+                    })}
+                    onFocus={() => {
+                      clearErrors('Answer2');
+                    }}
                     error={errors.Answer2?.message}
                     name="Answer2"
                     className="w-full border-black text-base text-black sm:w-1/2"

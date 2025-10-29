@@ -55,11 +55,12 @@ export default function ForgotUserIdPage() {
   const {
     control,
     register,
+    clearErrors,
     handleSubmit,
     formState: { errors, isValid },
   } = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordSchema),
-    mode: 'onChange',
+    mode: 'onBlur',
   });
 
   const fetchCaptcha = async () => {
@@ -143,21 +144,7 @@ export default function ForgotUserIdPage() {
       >
         {isLoading && <Loader className="mx-auto mb-4" />}
         <div className="flex flex-col gap-4 p-4">
-          {/* {showCredentialError ||
-            (showCaptchaError && (
-              <CustomAlert
-                type="error"
-                description={captchaVerify}
-                className="mb-2"
-              />
-            ))} */}
-          {showError && (
-            <CustomAlert
-              type="error"
-              description={errorMessage}
-              // className="mb-2"
-            />
-          )}
+          {showError && <CustomAlert type="error" description={errorMessage} />}
 
           <div className="flex justify-end">
             <b className="!text-[14px]">
@@ -182,6 +169,10 @@ export default function ForgotUserIdPage() {
                     );
                   }}
                   {...register('UserName')}
+                  onFocus={() => {
+                    setFieldError(false);
+                    clearErrors('UserName');
+                  }}
                   apiError={fieldError}
                   error={errors.UserName?.message}
                   name="UserName"
@@ -213,6 +204,10 @@ export default function ForgotUserIdPage() {
                       setFieldError(false);
                     },
                   })}
+                  onFocus={() => {
+                    clearErrors('SSNLast5');
+                    setFieldError(false);
+                  }}
                   apiError={fieldError}
                   error={errors.SSNLast5?.message}
                   name="SSNLast5"
@@ -227,25 +222,6 @@ export default function ForgotUserIdPage() {
 
             <Card className="customCard flex w-full gap-3 md:p-6 lg:px-6">
               <div className="w-full sm:w-1/2">
-                {/* <InputField
-                  label="Date of Birth"
-                  mandantory
-                  className={
-                    showCredentialError
-                      ? 'w-full text-[var(--text-error)]'
-                      : 'w-full'
-                  }
-                  {...register('dob', {
-                    onChange: (e: any) => {
-                      handleDOBChange(e);
-                    },
-                  })}
-                  error={errors.dob?.message}
-                  type="date"
-                  name="dob"
-                  value={dob}
-                  max={new Date().toISOString().split('T')[0]}
-                /> */}
                 <Controller
                   name="dob"
                   control={control}
@@ -257,6 +233,11 @@ export default function ForgotUserIdPage() {
                         setFieldError(false);
                         handleDOBChange(date ? format(date, 'MM/dd/yyyy') : '');
                         field.onChange(date ? format(date, 'MM/dd/yyyy') : '');
+                      }}
+                      onBlur={field.onBlur}
+                      onFocus={() => {
+                        setFieldError(false);
+                        clearErrors('dob');
                       }}
                       name={field.name}
                       label="Date of Birth"
@@ -297,6 +278,10 @@ export default function ForgotUserIdPage() {
                         setCaptchaVerify(value);
                       },
                     })}
+                    onFocus={() => {
+                      setFieldError(false);
+                      clearErrors('captchaInput');
+                    }}
                     apiError={showCaptchaError}
                     error={errors.captchaInput?.message}
                     name="captchaInput"

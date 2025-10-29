@@ -23,6 +23,8 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from '@/components/ui/popover';
+import { NotSecure, BlackEyeOpen, Eye } from '@/assets/svg';
+import Image from '@/components/atoms/Image';
 
 const ResetPasswordPage = () => {
   const router = useRouter();
@@ -38,10 +40,11 @@ const ResetPasswordPage = () => {
   const {
     register,
     handleSubmit,
+    clearErrors,
     formState: { errors, isValid },
   } = useForm<ResetPasswordFormValues>({
     resolver: zodResolver(resetPasswordSchema),
-    mode: 'onChange',
+    mode: 'onBlur',
   });
 
   const [showAlert, setShowAlert] = useState(false);
@@ -49,6 +52,7 @@ const ResetPasswordPage = () => {
   const [pwdNotSame, setPwdNotSame] = useState('');
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const [password, setPassword] = useState('');
   const [open, setOpen] = useState(false);
@@ -128,19 +132,7 @@ const ResetPasswordPage = () => {
             {showSuccessAlert ? null : (
               <Card className="customCard flex flex-col gap-3 py-3 sm:flex-row md:p-6 lg:px-6">
                 <div className="w-full sm:w-1/2">
-                  {/* <InputField
-                    label="New Password"
-                    mandantory={true}
-                    {...register('NewPassword', {
-                      onChange: handleChange,
-                    })}
-                    error={errors.NewPassword?.message}
-                    name="NewPassword"
-                    className="w-full"
-                  />
-                  <PasswordRequirements password={form.NewPassword} /> */}
-
-                  <Popover open={open} onOpenChange={setOpen}>
+                  <Popover open={open}>
                     <PopoverTrigger asChild>
                       <div className="relative w-full">
                         <InputField
@@ -150,12 +142,21 @@ const ResetPasswordPage = () => {
                             onChange: (e) => {
                               setPassword(e.target.value);
                             },
+                            onBlur: () => setOpen(false),
                           })}
+                          type="password"
                           error={errors.NewPassword?.message}
                           name="NewPassword"
                           className="w-full"
-                          onFocus={() => setOpen(true)}
-                          onBlur={() => setOpen(false)}
+                          onFocus={() => {
+                            clearErrors('NewPassword');
+                            setOpen(true);
+                          }}
+                          iconRight={
+                            errors.NewPassword?.message
+                              ? NotSecure
+                              : BlackEyeOpen
+                          }
                         />
                       </div>
                     </PopoverTrigger>
@@ -180,6 +181,12 @@ const ResetPasswordPage = () => {
                     name="ConfirmPassword"
                     type="password"
                     className="w-full"
+                    onFocus={() => {
+                      clearErrors('ConfirmPassword');
+                    }}
+                    iconRight={
+                      errors.ConfirmPassword?.message ? NotSecure : BlackEyeOpen
+                    }
                   />
                 </div>
               </Card>
@@ -195,7 +202,6 @@ const ResetPasswordPage = () => {
                   <Button
                     variant={isValid ? 'primary' : 'disable'}
                     className="disabled:cursor-not-allowed disabled:opacity-50"
-                    // onClick={() => resetPasswordSubmit()}
                     type="submit"
                     disabled={!isValid}
                   >

@@ -43,10 +43,11 @@ export default function RecoverUserIDPage() {
     control,
     register,
     handleSubmit,
+    clearErrors,
     formState: { errors, isValid },
   } = useForm<ForgotUserIdFormValues>({
     resolver: zodResolver(forgotUserIdSchema),
-    mode: 'all',
+    mode: 'onBlur',
   });
 
   const [showCredentialError, setShowCredentialError] = useState(false);
@@ -156,10 +157,12 @@ export default function RecoverUserIDPage() {
                   {...register('LastName', {
                     onChange: () => {
                       setFieldError(false);
-                      setShowError(false);
-                      setErrorMessage('');
                     },
                   })}
+                  onFocus={() => {
+                    clearErrors('LastName');
+                    setFieldError(false);
+                  }}
                   apiError={fieldError}
                   error={errors.LastName?.message}
                   maxLength={48}
@@ -190,6 +193,10 @@ export default function RecoverUserIDPage() {
                       setFieldError(false);
                     },
                   })}
+                  onFocus={() => {
+                    clearErrors('SSNLast5');
+                    setFieldError(false);
+                  }}
                   apiError={fieldError}
                   error={errors.SSNLast5?.message}
                   name="SSNLast5"
@@ -214,6 +221,11 @@ export default function RecoverUserIDPage() {
                         setFieldError(false);
                         handleDOBChange(date ? format(date, 'MM/dd/yyyy') : '');
                         field.onChange(date ? format(date, 'MM/dd/yyyy') : '');
+                      }}
+                      onBlur={field.onBlur}
+                      onFocus={() => {
+                        clearErrors('dob');
+                        setFieldError(false);
                       }}
                       name={field.name}
                       label="Date of Birth"
@@ -251,6 +263,10 @@ export default function RecoverUserIDPage() {
                         setCaptchaVerify(value);
                       },
                     })}
+                    onFocus={() => {
+                      clearErrors('captchaInput');
+                      setFieldError(false);
+                    }}
                     apiError={showCaptchaError}
                     error={errors.captchaInput?.message}
                     name="captchaInput"

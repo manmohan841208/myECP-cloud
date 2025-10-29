@@ -84,7 +84,7 @@ const InputField: React.FC<InputFieldProps> = ({
           {...props}
         />
         {iconRight && (
-          <div className="absolute top-1/2 right-3 -translate-y-1/2 text-[var(--color-grey-medium)] cursor-pointer">
+          <div className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer text-[var(--color-grey-medium)]">
             <Image src={iconRight as string} alt="img" />
           </div>
         )}

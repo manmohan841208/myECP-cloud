@@ -3,11 +3,17 @@ import { z } from 'zod';
 
 export const resetPasswordSchema = z
   .object({
-    NewPassword: z.string().min(8, 'Password must be at least 8 characters'),
-    ConfirmPassword: z.string().min(8, 'Confirm Password is required'),
+    NewPassword: z
+      .string()
+      .min(8, 'Password does not meet all requirements')
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/,
+        'Password does not meet all requirements',
+      ),
+    ConfirmPassword: z.string().min(8, 'Required Field'),
   })
   .refine((data) => data.NewPassword === data.ConfirmPassword, {
-    message: 'Passwords do not match',
+    message: 'Your passwords do not match. Please re-enter your passwords.',
     path: ['ConfirmPassword'],
   });
 
