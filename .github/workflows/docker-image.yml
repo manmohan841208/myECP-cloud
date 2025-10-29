@@ -1,6 +1,7 @@
 name: Build and Deploy to Cloud Run
 
 on:
+  workflow_call:   # 👈 Important! allows being called from ci.yml
   workflow_dispatch:
   push:
     branches:
@@ -33,7 +34,7 @@ jobs:
         run: |
           gcloud auth configure-docker europe-west1-docker.pkg.dev --quiet
 
-      # --- Build Docker image (always new) ---
+      # --- Build Docker image ---
       - name: Build Docker image
         run: |
           IMAGE_TAG=$(date +'%Y%m%d-%H%M%S')
