@@ -1,38 +1,36 @@
 # ---- Step 1: Build Stage ----
 FROM node:20-bullseye AS builder
  
+# Set working directory
 WORKDIR /app
  
-# Copy entire project (not just package.json) to prevent caching issues
-COPY . .
+# Copy package files first (for dependency caching)
+COPY package.json package-lock.json* ./
  
-# Install dependencies freshly without using cache
-RUN npm ci --no-cache || npm install --no-cache
+# Always ensure fresh dependencies
+RUN npm ci --no-cache
+ 
+# Copy everything else
+COPY . .
  
 # Build the Next.js app
 RUN npm run build
  
 # ---- Step 2: Production Stage ----
 FROM node:20-bullseye AS runner
- 
 WORKDIR /app
  
-# Copy only necessary files for production
-COPY --from=builder /app/package*.json ./
- 
-# Install only production dependencies, without caching
-RUN npm ci --omit=dev --no-cache || npm install --omit=dev --no-cache
- 
-# Copy production build and static assets
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/next.config.* ./   # Include config if exists
- 
-# Set environment variables for Cloud Run
 ENV NODE_ENV=production
 ENV PORT=8080
  
+# Copy only necessary parts
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/next.config.* ./ || true
+ 
 EXPOSE 8080
  
-# ✅ Start Next.js (Cloud Run expects listening on $PORT)
+# Start the Next.js app
 CMD ["npm", "start"]
