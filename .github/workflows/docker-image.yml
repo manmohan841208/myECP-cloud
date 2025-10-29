@@ -10,41 +10,39 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # Step 1: Checkout latest code
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # Step 2: Set up Google Cloud SDK
     - name: Set up Google Cloud SDK
       uses: google-github-actions/setup-gcloud@v2
       with:
         project_id: organic-edge-475807-v2
         service_account_key: ${{ secrets.GCP_SA_KEY }}
 
-    # Step 3: Authenticate Docker for Artifact Registry
     - name: Configure Docker for Artifact Registry
       run: gcloud auth configure-docker europe-west1-docker.pkg.dev --quiet
 
-    # Step 4: Clean install dependencies and rebuild LightningCSS
-    - name: Install dependencies and build Next.js
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install dependencies and rebuild native modules
       run: |
         rm -rf node_modules package-lock.json
-        npm install
-        npm rebuild lightningcss
+        npm install --include=optional
+        npm rebuild sharp --platform=linux --arch=x64
         npm run build --if-present
 
-    # Step 5: Build Docker image (unique timestamp tag, no cache)
     - name: Build Docker image (always new)
       run: |
         IMAGE_TAG=$(date +'%Y%m%d-%H%M%S')
         echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
         docker build --no-cache -t europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp/myecp-cloud:$IMAGE_TAG .
 
-    # Step 6: Push image to Artifact Registry
     - name: Push image to Artifact Registry
       run: docker push europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp/myecp-cloud:${{ env.IMAGE_TAG }}
 
-    # Step 7: Deploy to Cloud Run
     - name: Deploy to Cloud Run
       run: |
         gcloud run deploy myecp-cloud \
