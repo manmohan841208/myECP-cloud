@@ -1,37 +1,56 @@
 name: Build and Deploy to Cloud Run
 
 on:
-  workflow_dispatch:  # allows manual and CI-triggered runs
+  workflow_dispatch:              # allows manual trigger from GitHub UI
+  push:
+    branches:
+      - develop                   # auto-trigger on pushes to develop branch
+      # - main                    # (optional) uncomment if you want for main branch too
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      # --- Step 1: Checkout code ---
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      # --- Step 2: Set up Google Cloud SDK ---
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: organic-edge-475807-v2
           service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
 
-      - name: Configure Docker for Artifact Registry
-        run: gcloud auth configure-docker europe-west1-docker.pkg.dev --quiet
+      # --- Step 3: Authenticate Docker with GCP ---
+      - name: Configure Docker authentication
+        run: |
+          gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+          gcloud auth configure-docker europe-west1-docker.pkg.dev --quiet
 
+      # --- Step 4: Build Docker image ---
       - name: Build Docker image (always new)
         run: |
           IMAGE_TAG=$(date +'%Y%m%d-%H%M%S')
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
           docker build --no-cache -t europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp/myecp-cloud:$IMAGE_TAG .
 
-      - name: Push image to Artifact Registry
-        run: docker push europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp/myecp-cloud:${{ env.IMAGE_TAG }}
+      # --- Step 5: Authenticate Docker login explicitly (extra safety) ---
+      - name: Docker login to Artifact Registry
+        run: |
+          gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://europe-west1-docker.pkg.dev
 
-      - name: Deploy to Cloud Run (force new revision)
+      # --- Step 6: Push Docker image to Artifact Registry ---
+      - name: Push Docker image
+        run: |
+          docker push europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp/myecp-cloud:${{ env.IMAGE_TAG }}
+
+      # --- Step 7: Deploy to Cloud Run ---
+      - name: Deploy to Cloud Run
         run: |
           gcloud run deploy myecp-cloud \
             --image europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp/myecp-cloud:${{ env.IMAGE_TAG }} \
