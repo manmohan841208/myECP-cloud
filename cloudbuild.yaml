@@ -1,0 +1,23 @@
+steps:
+  # Step 1: Build a new Docker image (no cache)
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '--no-cache', '-t', 'gcr.io/$PROJECT_ID/myecp:latest', '.']
+
+  # Step 2: Push it to Artifact or Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/myecp:latest']
+
+  # Step 3: Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      [
+        'run', 'deploy', 'myecp',
+        '--image', 'gcr.io/$PROJECT_ID/myecp:latest',
+        '--region', 'europe-west1',
+        '--platform', 'managed',
+        '--allow-unauthenticated'
+      ]
+
+images:
+  - 'gcr.io/$PROJECT_ID/myecp:latest'
