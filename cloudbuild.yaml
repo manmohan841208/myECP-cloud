@@ -1,23 +1,29 @@
-steps:
-  # Step 1: Build a new Docker image (no cache)
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '--no-cache', '-t', 'gcr.io/$PROJECT_ID/myecp:latest', '.']
+substitutions:
+  _REGION: "europe-west1"
+  _SERVICE: "myecp"
+  _IMAGE: "gcr.io/$PROJECT_ID/myecp"
 
-  # Step 2: Push it to Artifact or Container Registry
+steps:
+  # Step 1: Build a new Docker image (always fresh)
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/myecp:latest']
+    args: ['build', '--no-cache', '-t', '${_IMAGE}:$SHORT_SHA', '.']
+
+  # Step 2: Push the image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', '${_IMAGE}:$SHORT_SHA']
 
   # Step 3: Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: 'gcloud'
+    entrypoint: 'bash'
     args:
-      [
-        'run', 'deploy', 'myecp',
-        '--image', 'gcr.io/$PROJECT_ID/myecp:latest',
-        '--region', 'europe-west1',
-        '--platform', 'managed',
-        '--allow-unauthenticated'
-      ]
+      - -c
+      - |
+        gcloud run deploy ${_SERVICE} \
+          --image ${_IMAGE}:$SHORT_SHA \
+          --region ${_REGION} \
+          --platform managed \
+          --allow-unauthenticated \
+          --quiet
 
 images:
-  - 'gcr.io/$PROJECT_ID/myecp:latest'
+  - '${_IMAGE}:$SHORT_SHA'
