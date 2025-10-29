@@ -25,18 +25,25 @@ jobs:
     - name: Configure Docker for Artifact Registry
       run: gcloud auth configure-docker europe-west1-docker.pkg.dev --quiet
 
-    # Step 4: Build Docker image (unique timestamp tag, no cache)
+    # Step 4: Install dependencies and build Next.js app
+    - name: Install dependencies and build Next.js
+      run: |
+        npm ci
+        npm install --include=optional sharp
+        npm run build --if-present
+
+    # Step 5: Build Docker image (unique timestamp tag, no cache)
     - name: Build Docker image (always new)
       run: |
         IMAGE_TAG=$(date +'%Y%m%d-%H%M%S')
         echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
         docker build --no-cache -t europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp/myecp-cloud:$IMAGE_TAG .
 
-    # Step 5: Push image to Artifact Registry
+    # Step 6: Push image to Artifact Registry
     - name: Push image to Artifact Registry
       run: docker push europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp/myecp-cloud:${{ env.IMAGE_TAG }}
 
-    # Step 6: Deploy to Cloud Run
+    # Step 7: Deploy to Cloud Run
     - name: Deploy to Cloud Run
       run: |
         gcloud run deploy myecp-cloud \
