@@ -13,7 +13,11 @@ RUN apt-get update && apt-get install -y \
 # Copy dependency files
 COPY package.json package-lock.json* ./
 
+# Install Node modules (include optional like sharp)
 RUN npm ci --include=optional
+
+# ✅ Rebuild sharp specifically for Linux
+RUN npm rebuild sharp --force
 
 # Copy env and source files
 COPY . .
@@ -34,4 +38,5 @@ ENV PORT=8080
 COPY --from=builder /app ./
 
 EXPOSE 8080
+
 CMD ["npm", "start"]
