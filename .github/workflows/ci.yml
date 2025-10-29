@@ -28,12 +28,9 @@ jobs:
       - name: Run tests
         run: npm test || echo "No tests defined"
 
-      # ✅ Trigger deployment workflow
-      - name: Trigger Docker Build and Deploy
-        if: success()
-        uses: peter-evans/workflow-dispatch@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          repository: ${{ github.repository }}
-          workflow: docker-image.yml
-          ref: develop
+  # ✅ Trigger Docker Build & Deploy (Re-usable workflow)
+  deploy:
+    needs: build
+    if: success()
+    uses: ./.github/workflows/docker-image.yml
+    secrets: inherit
