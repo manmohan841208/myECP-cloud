@@ -28,7 +28,7 @@ export { default as MilitryStarLogo } from '@/assets/svg/Logos/military_star_log
 export { default as TagLineLogo } from '@/assets/svg/Logos/tag_line.svg';
 export { default as RightArrow } from '@/assets/svg/white/right-arrow.svg';
 export { default as LeftArrow } from '@/assets/svg/white/left-arrow.svg';
-export { default as BannerImage } from '@/assets/svg/extra/banner-image.png';
+export { default as BannerImage } from './extra/banner-image.png';
 export { default as DummyCardImage } from '@/assets/svg/extra/dummy-card.png';
 export { default as PointsImg } from '@/assets/svg/extra/points.png';
 export { default as RewardImg } from '@/assets/svg/extra/rewording.png';
