@@ -11,44 +11,42 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # --- Step 1: Checkout repository ---
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # --- Step 2: Authenticate to Google Cloud ---
+      # --- Authenticate with GCP ---
       - name: Authenticate to Google Cloud
         id: auth
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      # --- Step 3: Set up Google Cloud SDK ---
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: organic-edge-475807-v2
 
-      # --- Step 4: Configure Docker authentication ---
+      # --- Configure Docker for Artifact Registry ---
       - name: Configure Docker authentication
         run: |
           gcloud auth configure-docker europe-west1-docker.pkg.dev --quiet
 
-      # --- Step 5: Build Docker image ---
-      - name: Build Docker image (always new)
+      # --- Build Docker image (always new) ---
+      - name: Build Docker image
         run: |
           IMAGE_TAG=$(date +'%Y%m%d-%H%M%S')
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
           docker build --no-cache -t europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp/myecp-cloud:$IMAGE_TAG .
 
-      # --- Step 6: Push Docker image to Artifact Registry ---
-      - name: Push Docker image
+      # --- Push Docker image ---
+      - name: Push Docker image to Artifact Registry
         run: |
           gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://europe-west1-docker.pkg.dev
           docker push europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp/myecp-cloud:${{ env.IMAGE_TAG }}
 
-      # --- Step 7: Deploy to Cloud Run ---
+      # --- Deploy to Cloud Run ---
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy myecp-cloud \
