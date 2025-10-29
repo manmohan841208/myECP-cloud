@@ -3,34 +3,43 @@ FROM node:20-bullseye AS builder
 
 WORKDIR /app
 
-# Copy package.json (ignore package-lock.json if not present)
-COPY package.json ./
+# Install system dependencies for sharp
+RUN apt-get update && apt-get install -y \
+  libvips-dev \
+  build-essential \
+  python3 \
+  && rm -rf /var/lib/apt/lists/*
 
-# Install dependencies
-RUN npm install
+# Copy package files first for better caching
+COPY package*.json ./
 
-# Copy rest of the project
+# Force clean install of dependencies for Linux
+RUN rm -rf node_modules package-lock.json && \
+    npm cache clean --force && \
+    npm install --include=optional && \
+    npm rebuild sharp --platform=linux --arch=x64 --libc=glibc
+
+# Copy all source code
 COPY . .
 
-# Build the Next.js app
+# Copy environment variables if needed
+COPY .env.local .env
+
+# Build Next.js
 RUN npm run build
 
 # ---- Step 2: Production Stage ----
 FROM node:20-bullseye AS runner
 WORKDIR /app
 
-# Copy only required files
-COPY --from=builder /app/package.json ./
-RUN npm install --omit=dev
-
-# Copy production build
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-
 ENV NODE_ENV=production
 ENV PORT=8080
 
-EXPOSE 8080
+# Copy built artifacts
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/node_modules ./node_modules
 
-# ✅ Start Next.js on the Cloud Run expected port
+EXPOSE 8080
 CMD ["npm", "start"]
