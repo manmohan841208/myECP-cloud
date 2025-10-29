@@ -146,3 +146,8 @@
     width: 50%;
   }
 }
+
+.banner-img img{
+  height: 410px;
+  width: 100% !important;
+}

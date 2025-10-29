@@ -68,7 +68,7 @@ export default function Navbar() {
                   onClick={() => setSelectedBTN('Login')}
                   style={{ cursor: 'pointer' }}
                 >
-                  {'Login'}
+                  {'Log In'}
                 </span>
               </Link>
             </li>

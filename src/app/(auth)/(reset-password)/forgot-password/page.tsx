@@ -50,6 +50,7 @@ export default function ForgotUserIdPage() {
 
   const [trigger, { data: blob, isFetching }] = useLazyGetCaptchaImageQuery();
   const [captchaText, setCaptchaText] = useState('');
+  const [fieldError, setFieldError] = useState(false);
 
   const {
     control,
@@ -96,7 +97,13 @@ export default function ForgotUserIdPage() {
 
     if (!isCaptchaValid) {
       setShowCaptchaError(true);
+      setShowError(true);
+      setErrorMessage('Please enter verification code shown below.');
       return;
+    } else {
+      setShowCaptchaError(false);
+      setShowError(false);
+      setErrorMessage('');
     }
 
     const payload: any = {
@@ -114,6 +121,7 @@ export default function ForgotUserIdPage() {
       route.push('/for-your-security'); // Navigate to next step
     } catch (err: any) {
       setShowError(true);
+      setFieldError(true);
       setErrorMessage(
         err?.data?.Message ||
           err?.data?.message ||
@@ -134,13 +142,15 @@ export default function ForgotUserIdPage() {
         header={FORGOT_PASSWORD}
       >
         {isLoading && <Loader className="mx-auto mb-4" />}
-        <div className="flex flex-col p-4 gap-4">
-          {(showCredentialError || showCaptchaError) && captchaVerify && (
-            <CustomAlert
-              type="error"
-              description={captchaVerify}
-            />
-          )}
+        <div className="flex flex-col gap-4 p-4">
+          {/* {showCredentialError ||
+            (showCaptchaError && (
+              <CustomAlert
+                type="error"
+                description={captchaVerify}
+                className="mb-2"
+              />
+            ))} */}
           {showError && (
             <CustomAlert
               type="error"
@@ -150,8 +160,8 @@ export default function ForgotUserIdPage() {
           )}
 
           <div className="flex justify-end">
-            <b className='!text-[14px]'>
-              <span className="px-1 text-[var(--text-error)] ">*</span>
+            <b className="!text-[14px]">
+              <span className="px-1 text-[var(--text-error)]">*</span>
               {REQUIRED_FIELDS}
             </b>
           </div>
@@ -165,13 +175,25 @@ export default function ForgotUserIdPage() {
                 <InputField
                   label="User ID"
                   mandantory
+                  onInput={(e) => {
+                    e.currentTarget.value = e.currentTarget.value.replace(
+                      /[^A-Za-z0-9\s]/g,
+                      '',
+                    );
+                  }}
                   {...register('UserName')}
+                  apiError={fieldError}
                   error={errors.UserName?.message}
                   name="UserName"
+                  maxLength={30}
+                  pattern="[A-Za-z0-9]{1,30}"
                   className={
                     showCredentialError
                       ? 'w-full text-[var(--text-error)]'
                       : 'w-full'
+                  }
+                  iconRight={
+                    errors.UserName?.message || fieldError ? NotSecure : ''
                   }
                 />
               </div>
@@ -180,16 +202,25 @@ export default function ForgotUserIdPage() {
                 <InputField
                   label="Last 5 Digits of SSN"
                   mandantory
-                  className={
-                    showCredentialError
-                      ? 'w-full text-[var(--text-error)]'
-                      : 'w-full'
-                  }
-                  {...register('SSNLast5')}
+                  onInput={(e) => {
+                    e.currentTarget.value = e.currentTarget.value.replace(
+                      /[^0-9]/g,
+                      '',
+                    );
+                  }}
+                  {...register('SSNLast5', {
+                    onChange: () => {
+                      setFieldError(false);
+                    },
+                  })}
+                  apiError={fieldError}
                   error={errors.SSNLast5?.message}
                   name="SSNLast5"
                   type="password"
                   maxLength={5}
+                  iconRight={
+                    errors.SSNLast5?.message || fieldError ? NotSecure : ''
+                  }
                 />
               </div>
             </Card>
@@ -218,16 +249,22 @@ export default function ForgotUserIdPage() {
                 <Controller
                   name="dob"
                   control={control}
-                  render={({ field, fieldState }: any) => (
+                  render={({ field, fieldState }) => (
                     <DatePicker
                       value={field.value}
+                      {...register(field.name)}
                       onChange={(date) => {
+                        setFieldError(false);
                         handleDOBChange(date ? format(date, 'MM/dd/yyyy') : '');
                         field.onChange(date ? format(date, 'MM/dd/yyyy') : '');
                       }}
                       name={field.name}
                       label="Date of Birth"
+                      apiError={fieldError}
                       error={fieldState.error?.message}
+                      iconRight={
+                        fieldState.error?.message || fieldError ? NotSecure : ''
+                      }
                     />
                   )}
                 />
@@ -251,12 +288,16 @@ export default function ForgotUserIdPage() {
 
                 <div className="responsive-captcha w-2/3 sm:w-2/3 md:w-1/2 lg:w-1/2">
                   <InputField
+                    mandantory
                     placeholder="Enter Captcha Code"
                     {...register('captchaInput', {
                       onChange: (e: any) => {
-                        handleCaptchaChange(e.target.value);
+                        const value = e.target.value;
+                        setShowCaptchaError(false);
+                        setCaptchaVerify(value);
                       },
                     })}
+                    apiError={showCaptchaError}
                     error={errors.captchaInput?.message}
                     name="captchaInput"
                     className={
@@ -264,7 +305,11 @@ export default function ForgotUserIdPage() {
                         ? 'w-full text-[var(--text-error)]'
                         : 'w-full'
                     }
-                    iconRight={showCaptchaError ? NotSecure : ''}
+                    iconRight={
+                      showCaptchaError || errors.captchaInput?.message
+                        ? NotSecure
+                        : ''
+                    }
                   />
                 </div>
               </div>

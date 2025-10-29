@@ -1,5 +1,5 @@
 'use client';
-import React, { type ReactElement, useEffect, useState } from 'react';
+import React, { useEffect, useState, type ReactElement } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import Card from '@/components/atoms/Card';
 import Image from '@/components/atoms/Image';
@@ -71,6 +71,7 @@ const Login = () => {
     formState: { errors, isValid },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
+    mode: 'all',
     defaultValues: {
       UserName: UserName ? UserName : '', // 👈 set your default value
     },
@@ -141,11 +142,15 @@ const Login = () => {
     // Center horizontally (by width) on all screens while keeping max-width:1152px
     <div className="mx-auto flex w-full max-w-[1152px] flex-col gap-4">
       {isLoading && <Loader className="mx-auto mb-4" />}
-      <section className="flex w-full gap-4 ">
-        <Card className="flex  w-full flex-col justify-between !p-3 h-[410px] ">
+      <section className="flex w-full gap-4">
+        <Card className="flex h-[410px] w-full flex-col justify-between !p-3 lg:max-w-[373px]">
           <div>
             {showError && (
-              <CustomAlert type="error" description={errorMessage} className='mb-2'/>
+              <CustomAlert
+                type="error"
+                description={errorMessage}
+                className="mb-2"
+              />
             )}
             <form
               className="flex flex-col gap-4"
@@ -154,20 +159,19 @@ const Login = () => {
               <div className="flex flex-col gap-1">
                 <InputField
                   label={USER_ID_LABEL}
-                  // onChange={(e: any) =>
-                  //   dispatch(
-                  //     setUserID(e.target.value),
-                  //     setShowError(false),
-                  //     setErrorMessage(''),
-                  //   )
-                  // }
-                  // value={UserName}
-                  {...register('UserName')}
+                  {...register('UserName', {
+                    onChange: () => {
+                      setShowError(false);
+                      setErrorMessage('');
+                    },
+                  })}
+                  name="UserName"
                   className="w-full"
+                  // error={errors.UserName?.message}
                 />
-                {errors.UserName && (
-                  <p className="text-(var(--color-red))">{errors.UserName.message}</p>
-                )}
+                {/* {errors.UserName && (
+                  <p className="text-red-500">{errors.UserName.message}</p>
+                )} */}
                 <div className="flex items-center justify-end gap-1">
                   {FORGOT}
                   <Link
@@ -182,7 +186,11 @@ const Login = () => {
                     className="w-[120px] rounded-[4px] bg-black"
                     content="You may recover your User ID"
                   >
-                    <Image src={Tooltip} alt="tooltip icon" className='hidden lg:block'/>
+                    <Image
+                      src={Tooltip}
+                      alt="tooltip icon"
+                      className="hidden lg:block"
+                    />
                   </DynamicTooltip>
                 </div>
               </div>
@@ -199,10 +207,11 @@ const Login = () => {
                   //   )
                   // }
                   {...register('password')}
+                  // error={errors.password?.message}
                 />
-                {errors.password && (
-                  <p className="text-(var(--color-red))">{errors.password.message}</p>
-                )}
+                {/* {errors.password && (
+                  <p className="text-red-500">{errors.password.message}</p>
+                )} */}
                 <div className="flex items-center justify-end gap-1">
                   {FORGOT}
                   <Link
@@ -217,7 +226,11 @@ const Login = () => {
                     className="w-[120px] rounded-[4px] bg-black"
                     content="You may recover your Password"
                   >
-                    <Image src={Tooltip} alt="tooltip icon" className='hidden lg:block'/>
+                    <Image
+                      src={Tooltip}
+                      alt="tooltip icon"
+                      className="hidden lg:block"
+                    />
                   </DynamicTooltip>
                   {/* </div> */}
                 </div>
@@ -246,18 +259,16 @@ const Login = () => {
           </div>
 
           <div className="mt-2 text-center text-sm">
-            <div className="flex items-center justify-center gap-1 flex-col md:flex-row">
+            <div className="flex flex-col items-center justify-center gap-1 md:flex-row">
               {NEW_TO_MYECP}{' '}
-              <p className='flex justify-center items-center gap-1'>
+              <p className="flex items-center justify-center gap-1">
                 Please
-                
                 <Link
                   href="/create-profile"
                   className="text-sm text-[var(--color-link)]"
                 >
-                   {PLEASE_REGISTER_HERE}
+                  {PLEASE_REGISTER_HERE}
                 </Link>
-              
               </p>
               <DynamicTooltip
                 side="right"
@@ -265,18 +276,22 @@ const Login = () => {
                 className="w-[152px] rounded-[4px] bg-black"
                 content="Your MyECP profile is unique to MyECP.com"
               >
-                <Image src={Tooltip} alt="tooltip icon" className='hidden lg:block'/>
+                <Image
+                  src={Tooltip}
+                  alt="tooltip icon"
+                  className="hidden lg:block"
+                />
               </DynamicTooltip>
             </div>
           </div>
         </Card>
 
-        <Card className="w-full relative hidden h-[410px] overflow-hidden !p-0 shadow-lg lg:block">
+        <Card className="relative hidden h-[410px] w-full overflow-hidden !p-0 shadow-lg lg:block">
           <Carousel
             images={images}
             autoScroll
             interval={3000}
-            className="rounded-lg"
+            className="rounded-lg "
           />
         </Card>
       </section>
@@ -311,10 +326,7 @@ const Login = () => {
                   {APPLY_NOW}
                 </Button>
               </div>
-              <Link
-                href="#"
-                className="text-sm text-[var(--color-link)]"
-              >
+              <Link href="#" className="text-sm text-[var(--color-link)]">
                 {LEARN_MORE}
               </Link>
             </div>
@@ -330,10 +342,7 @@ const Login = () => {
                   />
                 </div>
 
-                <Link
-                  href="#"
-                  className="text-[var(--color-link)]"
-                >
+                <Link href="#" className="text-[var(--color-link)]">
                   {SEE_REWARDS_TERMS_AND_CONDITIONS}
                 </Link>
               </div>

@@ -17,6 +17,12 @@ import {
   resetPasswordSchema,
   type ResetPasswordFormValues,
 } from '@/schemas/resetPasswordSchema';
+import PasswordRequirements from '@/components/atoms/PwdValidation';
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from '@/components/ui/popover';
 
 const ResetPasswordPage = () => {
   const router = useRouter();
@@ -43,6 +49,9 @@ const ResetPasswordPage = () => {
   const [pwdNotSame, setPwdNotSame] = useState('');
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+
+  const [password, setPassword] = useState('');
+  const [open, setOpen] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -78,19 +87,15 @@ const ResetPasswordPage = () => {
       }
     }
   };
-
   return (
     <div className="mx-auto max-w-[1152px] p-4 !text-base">
       <Card
         className="w-full bg-[var(--color-white)] !p-0 md:w-[74.65%]"
         header={showSuccessAlert ? 'MyECP Password Reset' : 'For Your Security'}
       >
-        <div className="flex flex-col p-4 !pb-0 gap-4">
+        <div className="flex flex-col gap-4 p-4 !pb-0">
           {showAlert ? (
-            <CustomAlert
-              type="error"
-              description={errorMessage}
-            />
+            <CustomAlert type="error" description={errorMessage} />
           ) : (
             ''
           )}
@@ -109,8 +114,8 @@ const ResetPasswordPage = () => {
 
           {showSuccessAlert ? null : (
             <div className="flex justify-end">
-              <b className='!text-[14px]'>
-                <span className="px-1 text-[var(--text-error)] ">*</span>
+              <b className="!text-[14px]">
+                <span className="px-1 text-[var(--text-error)]">*</span>
                 {REQUIRED_FIELDS}
               </b>
             </div>
@@ -123,14 +128,47 @@ const ResetPasswordPage = () => {
             {showSuccessAlert ? null : (
               <Card className="customCard flex flex-col gap-3 py-3 sm:flex-row md:p-6 lg:px-6">
                 <div className="w-full sm:w-1/2">
-                  <InputField
+                  {/* <InputField
                     label="New Password"
                     mandantory={true}
-                    {...register('NewPassword')}
+                    {...register('NewPassword', {
+                      onChange: handleChange,
+                    })}
                     error={errors.NewPassword?.message}
                     name="NewPassword"
                     className="w-full"
                   />
+                  <PasswordRequirements password={form.NewPassword} /> */}
+
+                  <Popover open={open} onOpenChange={setOpen}>
+                    <PopoverTrigger asChild>
+                      <div className="relative w-full">
+                        <InputField
+                          label="New Password"
+                          mandantory={true}
+                          {...register('NewPassword', {
+                            onChange: (e) => {
+                              setPassword(e.target.value);
+                            },
+                          })}
+                          error={errors.NewPassword?.message}
+                          name="NewPassword"
+                          className="w-full"
+                          onFocus={() => setOpen(true)}
+                          onBlur={() => setOpen(false)}
+                        />
+                      </div>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      side="right"
+                      align="start"
+                      className="w-[194px] !rounded-[4px] border-[#cccccc] bg-[#F1F1F1] p-0"
+                      onOpenAutoFocus={(e) => e.preventDefault()} // ✅ Prevent focus shift
+                      onCloseAutoFocus={(e) => e.preventDefault()} // ✅ Prevent focus shift back
+                    >
+                      <PasswordRequirements password={password} />
+                    </PopoverContent>
+                  </Popover>
                 </div>
 
                 <div className="w-full sm:w-1/2">

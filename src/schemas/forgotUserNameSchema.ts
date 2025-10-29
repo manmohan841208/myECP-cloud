@@ -1,7 +1,10 @@
 import { z } from 'zod';
 
 export const forgotUserIdSchema = z.object({
-  LastName: z.string().min(1, 'Last Name is required'),
+  LastName: z
+    .string()
+    .min(1, 'Required Field')
+    .max(48, 'Last Name cannot exceed 48 characters'),
   SSNLast5: z
     .string()
     .length(5, 'SSN must be exactly 5 digits')
@@ -12,17 +15,24 @@ export const forgotUserIdSchema = z.object({
       /^(0[1-9]|1[0-2])\/(0[1-9]|[12]\d|3[01])\/\d{4}$/,
       'Date of Birth must be in MM/DD/YYYY format',
     )
+
     .refine(
       (date) => {
-        const inputDate = new Date(date);
+        const [month, day, year] = date.split('/');
+        const inputDate = new Date(`${year}-${month}-${day}`);
         const today = new Date();
-        return inputDate <= today;
+        const eighteenYearsAgo = new Date(
+          today.getFullYear() - 18,
+          today.getMonth(),
+          today.getDate(),
+        );
+        return inputDate <= eighteenYearsAgo;
       },
       {
-        message: 'Date of Birth cannot be in the future',
+        message: 'You must be at least 18 years old',
       },
     ),
-  captchaInput: z.string().min(1, 'Captcha is required'),
+  captchaInput: z.string().min(1, 'Required Field'),
 });
 
 export type ForgotUserIdFormValues = z.infer<typeof forgotUserIdSchema>;

@@ -9,11 +9,12 @@ interface InputFieldProps extends React.ComponentProps<'input'> {
   label?: React.ReactNode;
   iconLeft?: React.ReactNode;
   iconRight?: React.ReactNode;
-  error?: string;
+  error?: string | undefined | null;
   mandantory?: boolean;
   help?: string;
   helpWidth?: string | number;
   placeholder?: string;
+  apiError?: boolean;
 }
 
 const InputField: React.FC<InputFieldProps> = ({
@@ -26,6 +27,7 @@ const InputField: React.FC<InputFieldProps> = ({
   help,
   helpWidth,
   placeholder = '',
+  apiError = false,
   ...props
 }) => {
   const hasError = error !== undefined;
@@ -37,7 +39,9 @@ const InputField: React.FC<InputFieldProps> = ({
         <label
           className={cn(
             'flex h-5 items-center text-sm font-medium', // Fixed height added here
-            hasError ? 'text-[var(--text-error)]' : 'text-[var(--text)]',
+            hasError || apiError
+              ? 'text-[var(--text-error)]'
+              : 'text-[var(--text)]',
           )}
         >
           {label}
@@ -71,8 +75,8 @@ const InputField: React.FC<InputFieldProps> = ({
             'pl-4',
             iconLeft && 'pl-10',
             iconRight && 'pr-10',
-            hasError &&
-              'border-[var(--error-border)] focus-visible:border-[var(--error-border)]',
+            (hasError || apiError) &&
+              'border-[var(--error-border)] text-[var(--text-error)] focus-visible:border-[var(--error-border)]',
             className,
           )}
           aria-invalid={hasError}
