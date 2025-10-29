@@ -12,6 +12,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0   # ensure full repo and latest commit are fetched
 
     - name: Set up Google Cloud SDK
       uses: google-github-actions/setup-gcloud@v2
@@ -43,10 +45,13 @@ jobs:
     - name: Push image to Artifact Registry
       run: docker push europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp/myecp-cloud:${{ env.IMAGE_TAG }}
 
-    - name: Deploy to Cloud Run
+    - name: Deploy to Cloud Run (force new revision)
       run: |
         gcloud run deploy myecp-cloud \
           --image europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp/myecp-cloud:${{ env.IMAGE_TAG }} \
           --region europe-west1 \
           --platform managed \
-          --allow-unauthenticated
+          --allow-unauthenticated \
+          --quiet \
+          --set-env-vars "NEXT_PUBLIC_BUILD_TIME=$(date +'%s')" \
+          --revision-suffix="rev-${{ env.IMAGE_TAG }}"
