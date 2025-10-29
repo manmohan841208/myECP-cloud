@@ -10,29 +10,37 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # Step 1: Checkout latest code
     - name: Checkout code
       uses: actions/checkout@v4
 
+    # Step 2: Set up Google Cloud SDK
     - name: Set up Google Cloud SDK
       uses: google-github-actions/setup-gcloud@v2
       with:
         project_id: organic-edge-475807-v2
         service_account_key: ${{ secrets.GCP_SA_KEY }}
 
+    # Step 3: Authenticate Docker for Artifact Registry
     - name: Configure Docker for Artifact Registry
       run: gcloud auth configure-docker europe-west1-docker.pkg.dev --quiet
 
-    - name: Build Docker image (no cache)
+    # Step 4: Build Docker image (force new image each time)
+    - name: Build Docker image (always new)
       run: |
-        docker build --no-cache -t europe-west1-docker.pkg.dev/organic-edge-475807-v2/cloud-run-source-deploy/myecp-cloud:latest .
+        IMAGE_TAG=$(date +%s)
+        echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+        docker build --no-cache -t europe-west1-docker.pkg.dev/organic-edge-475807-v2/cloud-run-source-deploy/myecp-cloud:$IMAGE_TAG .
 
+    # Step 5: Push image to Artifact Registry
     - name: Push image to Artifact Registry
-      run: docker push europe-west1-docker.pkg.dev/organic-edge-475807-v2/cloud-run-source-deploy/myecp-cloud:latest
+      run: docker push europe-west1-docker.pkg.dev/organic-edge-475807-v2/cloud-run-source-deploy/myecp-cloud:${{ env.IMAGE_TAG }}
 
+    # Step 6: Deploy latest image to Cloud Run
     - name: Deploy to Cloud Run
       run: |
         gcloud run deploy myecp-cloud \
-          --image europe-west1-docker.pkg.dev/organic-edge-475807-v2/cloud-run-source-deploy/myecp-cloud:latest \
+          --image europe-west1-docker.pkg.dev/organic-edge-475807-v2/cloud-run-source-deploy/myecp-cloud:${{ env.IMAGE_TAG }} \
           --region europe-west1 \
           --platform managed \
           --allow-unauthenticated
