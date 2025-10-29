@@ -4,7 +4,7 @@ options:
 substitutions:
   _REGION: "europe-west1"
   _SERVICE: "myecp"
-  _IMAGE: "gcr.io/$PROJECT_ID/myecp"
+  _IMAGE: "gcr.io/${PROJECT_ID}/myecp"
 
 steps:
   # Step 1: Build a new Docker image (always fresh)
