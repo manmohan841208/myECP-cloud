@@ -18,12 +18,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="bg-[#D3D3D3] text-[14px] antialiased font-arial">
+      <body className="bg-[#D3D3D3] text-[14px] antialiased font-arial min-h-screen flex flex-col">
         <AuthProvider>
           <Providers>
             <Navbar />
-            {children}
-            <Footer />
+            <main className="flex-grow">
+              {children}
+            </main>
+            <div>
+              <Footer />
+            </div>
           </Providers>
         </AuthProvider>
       </body>

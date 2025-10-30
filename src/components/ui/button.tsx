@@ -15,10 +15,11 @@ const buttonVariants = cva(
         secondary:
           'px-[12px] py-[10px] shadow font-bold rounded-[4px] bg-[var(--secondary-color)] text-white hover:bg-[var(--secondary-color)]/80 font-[Arial,sans-serif]',
         disable:
-          'px-[12px] py-[10px] shadow font-bold rounded-[4px] bg-[var(--disabled-color)] text-black cursor-not-allowed font-[Arial,sans-serif]',
+          'px-[12px] py-[10px] shadow font-bold rounded-[4px] bg-[var(--disabled-color)] text-black cursor-not-allowed font-[Arial,sans-serif] !opacity-100',
         outline:
           'px-[12px] py-[10px] shadow font-bold rounded-[4px] border text-[var(--color-blue)] font-[Arial,sans-serif]',
       },
+      
       size: {
         default: 'h-9 px-3 py-[10px] has-[>svg]:px-3',
         sm: 'h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5',

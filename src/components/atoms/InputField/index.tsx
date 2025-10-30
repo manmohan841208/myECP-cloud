@@ -109,7 +109,6 @@ const InputField: React.FC<InputFieldProps> = ({
                 'src' in iconRight ? (
                 <Image src={(iconRight as { src: string }).src} width={24} height={24} alt="icon" />
           ) : null}
-
           </div>
         )}
       </div>

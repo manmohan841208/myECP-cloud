@@ -78,6 +78,9 @@ export default function DatePicker({
   };
 
   const handleOpenChange = (newOpen: boolean) => {
+    if (iconRight) {
+      return;
+    }
     setOpen(newOpen);
     if (!newOpen) {
       setTempDate(
@@ -127,6 +130,8 @@ export default function DatePicker({
       <PopoverContent
         side="right"
         className="box-shadow w-full rounded-[16px] border-none bg-white p-0 dark:bg-gray-800"
+        onOpenAutoFocus={(e) => e.preventDefault()} // ✅ Prevent focus shift
+        onCloseAutoFocus={(e) => e.preventDefault()} // ✅ Prevent focus shift back
       >
         <Calendar
           mode="single"

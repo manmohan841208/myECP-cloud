@@ -119,7 +119,7 @@ export default function SecurityForm() {
         header={FOR_YOUR_ADDED_SECURITY}
       >
         {isLoading && <Loader className="mx-auto mb-4" />}
-        <div className="flex flex-col gap-4 px-4">
+        <div className="flex flex-col gap-4 px-4 pt-4">
           {showError && <CustomAlert type="error" description={errorMessage} />}
 
           <div className="flex justify-end">

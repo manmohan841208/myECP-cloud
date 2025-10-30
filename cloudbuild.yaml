@@ -2,22 +2,22 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 substitutions:
-  _REGION: "europe-west1"
-  _SERVICE: "myecp-cloud"
-  _IMAGE: "gcr.io/${PROJECT_ID}/myecp-cloud"
+  _REGION: 'europe-west1'
+  _SERVICE: 'myecp-cloud'
+  _IMAGE: 'gcr.io/${PROJECT_ID}/myecp-cloud'
 
 steps:
   # Step 1: Build Docker image (always fresh)
-  - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "--no-cache", "-t", "${_IMAGE}:$SHORT_SHA", "."]
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '--no-cache', '-t', '${_IMAGE}:$SHORT_SHA', '.']
 
   # Step 2: Push image to GCR
-  - name: "gcr.io/cloud-builders/docker"
-    args: ["push", "${_IMAGE}:$SHORT_SHA"]
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', '${_IMAGE}:$SHORT_SHA']
 
   # Step 3: Deploy new image to Cloud Run
-  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
-    entrypoint: "bash"
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
     args:
       - -c
       - |
@@ -30,4 +30,4 @@ steps:
           --quiet
 
 images:
-  - "${_IMAGE}:$SHORT_SHA"
+  - '${_IMAGE}:$SHORT_SHA'

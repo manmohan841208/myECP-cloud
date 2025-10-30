@@ -247,10 +247,10 @@ const TwoFactorAuthPage = () => {
               </div>
             </div>
           </Card>
-          <div className="flex items-center justify-between pb-4">
-            <div>
+          <div className="flex items-center justify-end pb-4">
+            {/* <div>
               <CustomCheckbox label="Remember Device" className="!text-sm" />
-            </div>
+            </div> */}
             <div className="flex h-10 items-center justify-center gap-2">
               <Button
                 variant={'outline'}

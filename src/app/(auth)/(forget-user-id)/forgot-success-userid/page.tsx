@@ -2,7 +2,7 @@
 import Card from '@/components/atoms/Card';
 import React from 'react';
 import Button from '@/components/atoms/Button';
-import { Tooltip } from '@/assets/svg';
+import { Info } from '@/assets/svg';
 import Image from '@/components/atoms/Image';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/store/store';
@@ -25,22 +25,22 @@ export default function SuccessRecoverUserIDPage() {
         header="Confirmation"
       >
         <div className="flex flex-col gap-4 p-4">
-          <div className="card pt-4 pb-4">
-            <div className="flex cursor-pointer items-center justify-start gap-1 pt-3 pr-4 pb-3 pl-4">
+          <div className="card pt-6 pb-6">
+            <div className="flex cursor-pointer items-center justify-start gap-1 pt-3 pr-4 pb-4 pl-4">
               <div className="flex items-center justify-center pl-2">
-                <Image src={Tooltip} alt="tooltip-img" />
+                <Image src={Info} alt="info-icon" />
               </div>
               <i>{LOGIN_ASSISTANCE}</i>
             </div>
 
             <hr className="border-[var(--text-disabled)]" />
 
-            <div className="flex items-center justify-start gap-1 pt-3 pr-4 pb-2 pl-6">
-              <p>{YOUR_USERID_IS}</p> <p className='font-bold'>{userName}</p>
+            <div className="flex items-center justify-start gap-1 pt-4 pr-4 pb-2 pl-6">
+              <p>{YOUR_USERID_IS}</p> <p className='font-bold tracking-tight'>{userName}.</p>
             </div>
           </div>
 
-          <div className="flex items-center justify-end pb-4">
+          <div className="flex items-center justify-end ">
             <div className="flex items-center justify-center gap-2">
               <Button variant={'primary'} onClick={() => router.push('/login')}>
                 {LOGIN}

@@ -10,10 +10,10 @@ const PasswordSuccessfullRecoverPage = () => {
         className="w-full bg-[var(--color-white)] !p-0 md:max-w-[860px]"
         header="MyECP Password Reset"
       >
-        <div className="flex flex-col p-6 !pb-0 gap-4">
+        <div className="flex flex-col p-4 !pb-0 gap-4">
           <CustomAlert
             type="success"
-             className='mb-2'
+             className='py-4'
             description="Your password has been reset successfully for MyECP account."
           />
 

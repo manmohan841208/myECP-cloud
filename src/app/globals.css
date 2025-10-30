@@ -151,3 +151,9 @@
   height: 410px;
   width: 100% !important;
 }
+
+@media (min-width: 767px) and (max-width: 830px) {
+  .nav-gap-fix {
+    gap: 12px;
+  }
+}

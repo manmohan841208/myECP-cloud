@@ -132,7 +132,7 @@ const ResetPasswordPage = () => {
             onSubmit={handleSubmit((data: any) => resetPasswordSubmit(data))}
           >
             {showSuccessAlert ? null : (
-              <Card className="customCard flex flex-col gap-3 py-3 sm:flex-row md:p-6 lg:px-6">
+              <Card className="customCard flex flex-col gap-4 sm:flex-row md:p-6 lg:px-6">
                 <div className="w-full sm:w-1/2">
                   <Popover open={open}>
                     <PopoverTrigger asChild>
@@ -161,10 +161,13 @@ const ResetPasswordPage = () => {
                                 ? BlackEyeClose
                                 : BlackEyeOpen
                           }
-                          onIconClick={() =>
-                            setShowNewPassword((prev) => !prev)
-                          }
-                          
+                          onIconClick={() => {
+                            if (errors.NewPassword?.message) {
+                              return;
+                            } else {
+                              setShowNewPassword((prev) => !prev);
+                            }
+                          }}
                         />
                       </div>
                     </PopoverTrigger>
@@ -199,7 +202,13 @@ const ResetPasswordPage = () => {
                           ? BlackEyeClose
                           : BlackEyeOpen
                     }
-                    onIconClick={() => setShowConfirmPassword((prev) => !prev)}
+                    onIconClick={() => {
+                      if (errors.ConfirmPassword?.message) {
+                        return;
+                      } else {
+                        setShowConfirmPassword((prev) => !prev);
+                      }
+                    }}
                   />
                 </div>
               </Card>

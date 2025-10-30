@@ -4,6 +4,7 @@ export const forgotPasswordSchema = z.object({
   UserName: z
     .string()
     .min(1, 'Required Field')
+    .min(6, 'Your User ID must contain 6 or more characters.')
     .max(30, 'User ID cannot exceed 30 characters'),
   SSNLast5: z
     .string()

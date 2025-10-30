@@ -109,7 +109,7 @@ const ForYourSecurityPage = () => {
               className="flex flex-col gap-4"
               onSubmit={handleSubmit((data: any) => validate(data))}
             >
-              <Card className="flex w-full bg-[var(--color-white)] p-6">
+              <Card className="customCard flex flex-col  md:p-6 lg:px-6">
                 <div className="flex-1">
                   <InputField
                     label={
@@ -133,7 +133,7 @@ const ForYourSecurityPage = () => {
                 </div>
               </Card>
 
-              <Card className="flex w-full bg-[var(--color-white)] p-6">
+              <Card className="customCard flex flex-col md:p-6 lg:px-6">
                 <div className="flex-1">
                   <InputField
                     label={

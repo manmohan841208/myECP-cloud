@@ -20,9 +20,9 @@ import {
   verifyOtpSchema,
   type VerifyOtpFormValues,
 } from '@/schemas/verifyOtpSchema';
-import { CANCEL, CONTINUE, REQUIRED_FIELDS } from '@/constants/commonConstants';
+import { CANCEL, CONFIRM, REQUIRED_FIELDS } from '@/constants/commonConstants';
 import { Loader } from '@/components/atoms/Loader';
-import { SELECT_DELIVERY_METHOD } from '@/constants/commonConstants';
+import { PLEASE_Enter_YOUR_AUNTICATION_CODE  } from '@/constants/commonConstants';
 import {
   CHECK_YOUR_EMAIL,
   CLICK_HERE_TO_REQUEST_A_NEW_AUTHENTICATION_CODE,
@@ -165,17 +165,18 @@ const TwoFactAuthCodeEntryPage = () => {
             className="w-full bg-[var(--color-white)] !p-0"
             header={
               <>
-                {SELECT_DELIVERY_METHOD}{' '}
+                {PLEASE_Enter_YOUR_AUNTICATION_CODE }{' '}
                 <span className="text-[var(--text-error)]">*</span>
               </>
             }
           >
             <div className="px-3">
-              <div className="flex flex-col pt-9 pb-3">
-                <div className="flex items-center gap-3 pl-4 text-[var(--color-disabled-text)]">
-                  <div className="flex h-[60px] w-[60px] items-center justify-center">
-                    <Image src={Email} alt="email-img" />
+              <div className=" pt-9 pb-3 ">
+                <div className='flex '>
+                  <div className="flex h-full lg:pl-6 lg:pr-4 items-start justify-center ">
+                    <Image src={Email} alt="email-img" className=' h-[60px] w-[60px] '/>
                   </div>
+                <div className="flex  gap-3 pl-4 text-[var(--color-disabled-text)] flex-col">
 
                   <div className="flex-1">
                     <InputField
@@ -195,21 +196,26 @@ const TwoFactAuthCodeEntryPage = () => {
                         onChange: handleCodeChange,
                       })}
                       error={errors.code?.message}
+                      className='w-full'
                       // value={form}
                     />
                   </div>
+               
+                <div className="  text-sm">
+                 <Link
+                   href="#"
+                   className="text-[var(--hyperlink)]"
+                   onClick={() => getOtp()}
+                 >
+                   {CLICK_HERE_TO_REQUEST_A_NEW_AUTHENTICATION_CODE}
+                 </Link>
+               </div>
+                
                 </div>
               </div>
-
-              <div className="ps-[calc(1rem+60px+0.75rem)] pb-5 text-sm">
-                <Link
-                  href="#"
-                  className="text-[var(--hyperlink)]"
-                  onClick={() => getOtp()}
-                >
-                  {CLICK_HERE_TO_REQUEST_A_NEW_AUTHENTICATION_CODE}
-                </Link>
               </div>
+
+
             </div>
           </Card>
 
@@ -228,7 +234,7 @@ const TwoFactAuthCodeEntryPage = () => {
               onClick={handleSubmit(onSubmit)}
               disabled={!isValid || isVerifying}
             >
-              {CONTINUE}
+              {CONFIRM}
             </Button>
           </div>
         </div>

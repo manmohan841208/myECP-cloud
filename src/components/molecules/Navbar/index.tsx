@@ -38,13 +38,14 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="navbar relative flex items-center justify-between px-4 shadow-md md:px-16">
-      <div className="flex w-full items-center gap-4 py-3.5 md:gap-6">
+    <nav className="navbar shadow-md ">
+      <div className="mx-auto max-w-[1152px] !text-sm relative flex items-center justify-between px-4 ">
+      <div className="flex w-full items-center gap-4 py-3.5 md:gap-5 ">
         <Link href="/">
           <Image src={MilitryStarLogo} alt="Logo" className="cursor-pointer" />
         </Link>
         {/* Desktop Nav */}
-        <ul className="hidden gap-6 md:flex">
+        <ul className="hidden gap-5 md:flex">
           {navLinks.map((link) => (
             <li key={link.name}>
               <Link href={link.href}>
@@ -126,6 +127,7 @@ export default function Navbar() {
           </ul>
         </div>
       )}
+      </div>
     </nav>
   );
 }
