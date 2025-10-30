@@ -14,7 +14,7 @@ import { useForgotUserNameMutation } from '@/store/services/forgotUserNameApi';
 import { useDispatch } from 'react-redux';
 import { setForgotUserName } from '@/store/slices/forgotUserNameSlice';
 import { CANCEL, REQUIRED_FIELDS } from '@/constants/commonConstants';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   forgotUserIdSchema,
@@ -49,6 +49,12 @@ export default function RecoverUserIDPage() {
     resolver: zodResolver(forgotUserIdSchema),
     mode: 'onBlur',
   });
+
+  // ✅ Watch all form values
+  const values = useWatch({ control });
+
+  // ✅ Check validity using Zod schema
+  const isFormValid = forgotUserIdSchema.safeParse(values).success;
 
   const [showCredentialError, setShowCredentialError] = useState(false);
   const [showCaptchaError, setShowCaptchaError] = useState(false);
@@ -146,6 +152,7 @@ export default function RecoverUserIDPage() {
             <Card className="customCard flex w-full flex-col gap-4 sm:flex-row md:p-6 lg:px-6">
               <div className="w-full sm:w-1/2">
                 <InputField
+                  autoFocus
                   label="Last Name"
                   mandantory
                   onInput={(e) => {
@@ -182,7 +189,7 @@ export default function RecoverUserIDPage() {
                 <InputField
                   label="Last 5 Digits of SSN"
                   mandantory
-                  className='w-full'
+                  className="w-full"
                   onInput={(e) => {
                     e.currentTarget.value = e.currentTarget.value.replace(
                       /[^0-9]/g,
@@ -209,8 +216,8 @@ export default function RecoverUserIDPage() {
                 />
               </div>
             </Card>
-            <Card className="customCard flex w-full gap-3 md:p-6 lg:px-6  ">
-              <div className="w-full sm:w-1/2 pr-[6px]">
+            <Card className="customCard flex w-full gap-3 md:p-6 lg:px-6">
+              <div className="w-full pr-[6px] sm:w-1/2">
                 <Controller
                   name="dob"
                   control={control}
@@ -253,7 +260,7 @@ export default function RecoverUserIDPage() {
                     <Image src={Relode} alt="relode-img" />
                   </Button>
                 </div>
-                <div className="responsive-captcha w-2/3 sm:w-2/3 md:w-1/2 lg:w-1/2  pr-[6px]">
+                <div className="responsive-captcha w-2/3 pr-[6px] sm:w-2/3 md:w-1/2 lg:w-1/2">
                   <InputField
                     mandantory
                     placeholder="Enter Captcha Code"
@@ -297,9 +304,9 @@ export default function RecoverUserIDPage() {
                 {CANCEL}
               </Button>
               <Button
-                variant={isValid ? 'primary' : 'disable'}
+                variant={isFormValid ? 'primary' : 'disable'}
                 type="submit"
-                disabled={!isValid || isLoading}
+                disabled={!isFormValid || isLoading}
               >
                 {isLoading ? 'Validating...' : 'Validate'}
               </Button>

@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { format, parse, isValid, addYears, isAfter } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/popover';
 import { Calendar as cal } from '@/assets/svg';
 import { InputField } from '../InputField';
+import { enUS } from 'date-fns/locale';
 
 type DatePickerProps = {
   value?: string;
@@ -40,6 +41,18 @@ export default function DatePicker({
       : undefined,
   );
   const [inputValue, setInputValue] = useState(value || '');
+
+  const [windowWidth, setWindowWidth] = useState<number>(
+    typeof window !== 'undefined' ? window.innerWidth : 1024,
+  );
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const popoverSide = windowWidth <= 768 ? 'top' : 'right'; // ✅ mobile threshold
 
   const formatInput = (raw: string) => {
     const digits = raw.replace(/\D/g, '');
@@ -91,6 +104,10 @@ export default function DatePicker({
     }
   };
 
+  const customWeekdayFormat = {
+    formatWeekday: (date: Date) => format(date, 'EEEEE', { locale: enUS }), // 'EEEEE' gives single-letter weekday
+  };
+
   const handleOk = () => {
     if (tempDate) {
       const formatted = format(tempDate, 'MM/dd/yyyy');
@@ -128,13 +145,17 @@ export default function DatePicker({
         </div>
       </PopoverTrigger>
       <PopoverContent
-        side="right"
-        className="box-shadow w-full rounded-[16px] border-none bg-white p-0 dark:bg-gray-800"
+        side={popoverSide}
+        sideOffset={popoverSide === "top" ? -250 : 4}
+        className="box-shadow w-full rounded-[16px] border-none bg-white p-0 dark:bg-gray-800 "
         onOpenAutoFocus={(e) => e.preventDefault()} // ✅ Prevent focus shift
         onCloseAutoFocus={(e) => e.preventDefault()} // ✅ Prevent focus shift back
       >
         <Calendar
           mode="single"
+          formatters={{
+            formatWeekdayName: (date) => format(date, 'EEEEE'), // ✅ Single letter
+          }}
           selected={tempDate}
           onSelect={handleCalendarSelect}
           initialFocus

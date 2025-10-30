@@ -17,7 +17,7 @@ import {
   forgotPasswordSchema,
   type ForgotPasswordFormValues,
 } from '@/schemas/forgotPasswordSchema';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CANCEL, REQUIRED_FIELDS } from '@/constants/commonConstants';
 import { Loader } from '@/components/atoms/Loader';
@@ -45,9 +45,6 @@ export default function ForgotUserIdPage() {
   const [showCaptchaError, setShowCaptchaError] = useState(false);
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-
-  const dob = `${form.DOB_Year}-${form.DOB_Month}-${form.DOB_Day}`;
-
   const [trigger, { data: blob, isFetching }] = useLazyGetCaptchaImageQuery();
   const [captchaText, setCaptchaText] = useState('');
   const [fieldError, setFieldError] = useState(false);
@@ -63,6 +60,12 @@ export default function ForgotUserIdPage() {
     mode: 'onBlur',
   });
 
+  // ✅ Watch all form values
+  const values = useWatch({ control });
+
+  // ✅ Check validity using Zod schema
+  const isFormValid = forgotPasswordSchema.safeParse(values).success;
+
   const fetchCaptcha = async () => {
     try {
       const blobData = await trigger().unwrap();
@@ -76,10 +79,6 @@ export default function ForgotUserIdPage() {
   useEffect(() => {
     fetchCaptcha();
   }, []);
-
-  const handleChange = () => {
-    setShowError(false);
-  };
 
   const handleDOBChange = (date: any) => {
     const [month, day, year] = date.split('/');
@@ -160,6 +159,7 @@ export default function ForgotUserIdPage() {
             <Card className="customCard flex w-full flex-col gap-4 sm:flex-row md:p-6 lg:px-6">
               <div className="w-full sm:w-1/2">
                 <InputField
+                  autoFocus
                   label="User ID"
                   mandantory
                   onInput={(e) => {
@@ -192,7 +192,7 @@ export default function ForgotUserIdPage() {
               <div className="w-full sm:w-1/2">
                 <InputField
                   label="Last 5 Digits of SSN"
-                  className='w-full'
+                  className="w-full"
                   mandantory
                   onInput={(e) => {
                     e.currentTarget.value = e.currentTarget.value.replace(
@@ -222,7 +222,7 @@ export default function ForgotUserIdPage() {
             </Card>
 
             <Card className="customCard flex w-full gap-4 md:p-6 lg:px-6">
-              <div className="w-full sm:w-1/2  pr-[6px]">
+              <div className="w-full pr-[6px] sm:w-1/2">
                 <Controller
                   name="dob"
                   control={control}
@@ -268,7 +268,7 @@ export default function ForgotUserIdPage() {
                   </Button>
                 </div>
 
-                <div className="responsive-captcha w-2/3 sm:w-2/3 md:w-1/2 lg:w-1/2  pr-[6px]">
+                <div className="responsive-captcha w-2/3 pr-[6px] sm:w-2/3 md:w-1/2 lg:w-1/2">
                   <InputField
                     mandantory
                     placeholder="Enter Captcha Code"
@@ -315,9 +315,9 @@ export default function ForgotUserIdPage() {
               </Button>
 
               <Button
-                variant={isValid ? 'primary' : 'disable'}
+                variant={isFormValid ? 'primary' : 'disable'}
                 type="submit"
-                disabled={!isValid || isLoading}
+                disabled={!isFormValid || isLoading}
               >
                 {isLoading ? 'Validating...' : 'Validate'}
               </Button>

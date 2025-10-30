@@ -2,7 +2,7 @@
 import Button from '@/components/atoms/Button';
 import Card from '@/components/atoms/Card';
 import { InputField } from '@/components/atoms/InputField';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import CustomAlert from '@/components/atoms/AlertMessage';
 import { useResetPasswordMutation } from '@/store/services/resetPasswordApi';
@@ -11,7 +11,7 @@ import { setResetPasswordMessage } from '@/store/slices/resetPasswordSlice';
 import { CANCEL, REQUIRED_FIELDS } from '@/constants/commonConstants';
 import { LOGIN, SUBMIT } from '@/constants/forgotPwdSQConstants';
 import { Loader } from '@/components/atoms/Loader';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   resetPasswordSchema,
@@ -31,16 +31,11 @@ const ResetPasswordPage = () => {
   const [resetPassword, { isLoading }] = useResetPasswordMutation();
   const dispatch = useDispatch();
 
-  const [form, setForm] = useState({
-    NewPassword: '',
-    ConfirmPassword: '',
-    UserName: localStorage.getItem('forgotPwdUserName') || '',
-  });
-
   const {
     register,
     handleSubmit,
     clearErrors,
+    control,
     formState: { errors, isValid },
   } = useForm<ResetPasswordFormValues>({
     resolver: zodResolver(resetPasswordSchema),
@@ -58,17 +53,23 @@ const ResetPasswordPage = () => {
 
   const [password, setPassword] = useState('');
   const [open, setOpen] = useState(false);
+  const [windowWidth, setWindowWidth] = useState<number>(
+    typeof window !== 'undefined' ? window.innerWidth : 1024,
+  );
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setErrorMessage('');
-    setShowAlert(false);
-    setPwdNotSame('');
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  // ✅ Watch all form values
+  const values = useWatch({ control });
+
+  // ✅ Check validity using Zod schema
+  const isFormValid = resetPasswordSchema.safeParse(values).success;
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const popoverSide = windowWidth <= 768 ? 'bottom' : 'right'; // ✅ mobile threshold
 
   const resetPasswordSubmit = async (data: ResetPasswordFormValues) => {
     if (isValid) {
@@ -97,7 +98,7 @@ const ResetPasswordPage = () => {
     <div className="mx-auto max-w-[1152px] p-4 !text-base">
       <Card
         className="w-full bg-[var(--color-white)] !p-0 md:w-[74.65%]"
-        header={showSuccessAlert ? 'MyECP Password Reset' : 'For Your Security'}
+        header={showSuccessAlert ? 'MyECP Password Reset' : 'Reset Password'}
       >
         <div className="flex flex-col gap-4 p-4 !pb-0">
           {showAlert ? (
@@ -172,7 +173,7 @@ const ResetPasswordPage = () => {
                       </div>
                     </PopoverTrigger>
                     <PopoverContent
-                      side="right"
+                      side={popoverSide}
                       align="start"
                       className="w-[194px] !rounded-[4px] border-[#cccccc] bg-[#F1F1F1] p-0"
                       onOpenAutoFocus={(e) => e.preventDefault()} // ✅ Prevent focus shift
@@ -222,10 +223,10 @@ const ResetPasswordPage = () => {
                   </Button>
 
                   <Button
-                    variant={isValid ? 'primary' : 'disable'}
+                    variant={isFormValid ? 'primary' : 'disable'}
                     className="disabled:cursor-not-allowed disabled:opacity-50"
                     type="submit"
-                    disabled={!isValid}
+                    disabled={!isFormValid}
                   >
                     {SUBMIT}
                   </Button>

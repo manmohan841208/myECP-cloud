@@ -40,7 +40,7 @@ const InputField: React.FC<InputFieldProps> = ({
       {label !== undefined && (
         <label
           className={cn(
-            'flex h-5 items-center text-sm font-medium', // Fixed height added here
+            'flex min-h-5 items-center text-sm font-medium', // Fixed height added here
             hasError || apiError
               ? 'text-[var(--text-error)]'
               : 'text-[var(--text)]',

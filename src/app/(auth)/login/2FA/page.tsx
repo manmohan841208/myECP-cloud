@@ -17,7 +17,7 @@ import CustomAlert from '@/components/atoms/AlertMessage';
 import { useDispatch } from 'react-redux';
 import { setSelectedOption, setOtpResponse } from '@/store/slices/sendOtpSlice';
 
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   twoFactorSchema,
@@ -57,6 +57,7 @@ const TwoFactorAuthPage = () => {
     handleSubmit,
     setValue,
     watch,
+    control,
     formState: { errors, isValid },
   } = useForm<TwoFactorFormValues>({
     resolver: zodResolver(twoFactorSchema),
@@ -69,6 +70,12 @@ const TwoFactorAuthPage = () => {
           : '',
     },
   });
+
+  // ✅ Watch all form values
+  const values = useWatch({ control });
+
+  // ✅ Check validity using Zod schema
+  const isFormValid = twoFactorSchema.safeParse(values).success;
 
   const otpOption = watch('otpOption');
 
@@ -261,10 +268,10 @@ const TwoFactorAuthPage = () => {
               </Button>
 
               <Button
-                variant={!otpOption || isLoading ? 'disable' : 'primary'}
+                variant={!isFormValid ? 'disable' : 'primary'}
                 onClick={handleSubmit(sendOtp)}
                 className="h-full"
-                disabled={!otpOption || isLoading}
+                disabled={!isFormValid || isLoading}
               >
                 {CONTINUE}
               </Button>

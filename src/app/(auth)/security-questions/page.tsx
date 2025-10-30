@@ -10,7 +10,7 @@ import CustomAlert from '@/components/atoms/AlertMessage';
 import { useVerifySecurityQuestionMutation } from '@/store/services/verifySecurityQuestionApi';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   securityQuestionSchema,
@@ -52,6 +52,7 @@ export default function SecurityForm() {
     register,
     handleSubmit,
     clearErrors,
+    control,
     formState: { errors, isValid },
   } = useForm<SecurityQuestionFormValues>({
     resolver: zodResolver(securityQuestionSchema),
@@ -61,6 +62,12 @@ export default function SecurityForm() {
       rememberDevice: false,
     },
   });
+
+  // ✅ Watch all form values
+  const values = useWatch({ control });
+
+  // ✅ Check validity using Zod schema
+  const isFormValid = securityQuestionSchema.safeParse(values).success;
 
   const router = useRouter();
 
@@ -180,8 +187,8 @@ export default function SecurityForm() {
                 {CANCEL}
               </Button>
               <Button
-                variant={isValid ? 'primary' : 'disable'}
-                disabled={!isValid || isLoading}
+                variant={isFormValid ? 'primary' : 'disable'}
+                disabled={!isFormValid || isLoading}
                 className="h-full"
                 type="submit"
               >

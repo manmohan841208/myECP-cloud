@@ -1,3 +1,4 @@
+import { isValid, parse } from 'date-fns';
 import { z } from 'zod';
 
 export const forgotPasswordSchema = z.object({
@@ -18,7 +19,15 @@ export const forgotPasswordSchema = z.object({
       /^(0[1-9]|1[0-2])\/(0[1-9]|[12]\d|3[01])\/\d{4}$/,
       'Date of Birth must be in MM/DD/YYYY format',
     )
-
+    .refine(
+      (date) => {
+        const parsedDate = parse(date, 'MM/dd/yyyy', new Date());
+        return isValid(parsedDate);
+      },
+      {
+        message: 'Date of Birth must be in MM/DD/YYYY format',
+      },
+    )
     .refine(
       (date) => {
         const [month, day, year] = date.split('/');

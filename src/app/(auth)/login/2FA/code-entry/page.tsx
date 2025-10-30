@@ -14,7 +14,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { setSelectedOption, setOtpResponse } from '@/store/slices/sendOtpSlice';
 import { useVerifyOtpMutation } from '@/store/services/verifyOtpApi';
 
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   verifyOtpSchema,
@@ -22,7 +22,7 @@ import {
 } from '@/schemas/verifyOtpSchema';
 import { CANCEL, CONFIRM, REQUIRED_FIELDS } from '@/constants/commonConstants';
 import { Loader } from '@/components/atoms/Loader';
-import { PLEASE_Enter_YOUR_AUNTICATION_CODE  } from '@/constants/commonConstants';
+import { PLEASE_Enter_YOUR_AUNTICATION_CODE } from '@/constants/commonConstants';
 import {
   CHECK_YOUR_EMAIL,
   CLICK_HERE_TO_REQUEST_A_NEW_AUTHENTICATION_CODE,
@@ -59,6 +59,7 @@ const TwoFactAuthCodeEntryPage = () => {
     register,
     handleSubmit,
     clearErrors,
+    control,
     formState: { errors, isValid },
   } = useForm<VerifyOtpFormValues>({
     resolver: zodResolver(verifyOtpSchema),
@@ -67,6 +68,11 @@ const TwoFactAuthCodeEntryPage = () => {
       code: '',
     },
   });
+  // ✅ Watch all form values
+  const values = useWatch({ control });
+
+  // ✅ Check validity using Zod schema
+  const isFormValid = verifyOtpSchema.safeParse(values).success;
 
   const onSubmit = async (data: VerifyOtpFormValues) => {
     if (!isValid) {
@@ -165,57 +171,57 @@ const TwoFactAuthCodeEntryPage = () => {
             className="w-full bg-[var(--color-white)] !p-0"
             header={
               <>
-                {PLEASE_Enter_YOUR_AUNTICATION_CODE }{' '}
+                {PLEASE_Enter_YOUR_AUNTICATION_CODE}{' '}
                 <span className="text-[var(--text-error)]">*</span>
               </>
             }
           >
             <div className="px-3">
-              <div className=" pt-9 pb-3 ">
-                <div className='flex '>
-                  <div className="flex h-full lg:pl-6 lg:pr-4 items-start justify-center ">
-                    <Image src={Email} alt="email-img" className=' h-[60px] w-[60px] '/>
-                  </div>
-                <div className="flex  gap-3 pl-4 text-[var(--color-disabled-text)] flex-col">
-
-                  <div className="flex-1">
-                    <InputField
-                      label={
-                        <div className="flex gap-1">
-                          <p className="text-black">{ENTER_YOUR_CODE}</p>
-                          <span className="text-[var(--text-error)]">*</span>
-                        </div>
-                      }
-                      // className="w-full border-black text-base text-black sm:w-1/2"
-                      inputMode="numeric"
-                      onFocus={() => {
-                        clearErrors('code');
-                      }}
-                      maxLength={6}
-                      {...register('code', {
-                        onChange: handleCodeChange,
-                      })}
-                      error={errors.code?.message}
-                      className='w-full'
-                      // value={form}
+              <div className="pt-9 pb-3">
+                <div className="flex">
+                  <div className="flex h-full items-start justify-center lg:pr-4 lg:pl-6">
+                    <Image
+                      src={Email}
+                      alt="email-img"
+                      className="h-[60px] w-[60px]"
                     />
                   </div>
-               
-                <div className="  text-sm">
-                 <Link
-                   href="#"
-                   className="text-[var(--hyperlink)]"
-                   onClick={() => getOtp()}
-                 >
-                   {CLICK_HERE_TO_REQUEST_A_NEW_AUTHENTICATION_CODE}
-                 </Link>
-               </div>
-                
+                  <div className="flex flex-col gap-3 pl-4 text-[var(--color-disabled-text)]">
+                    <div className="flex-1">
+                      <InputField
+                        label={
+                          <div className="flex gap-1">
+                            <p className="text-black">{ENTER_YOUR_CODE}</p>
+                            <span className="text-[var(--text-error)]">*</span>
+                          </div>
+                        }
+                        // className="w-full border-black text-base text-black sm:w-1/2"
+                        inputMode="numeric"
+                        onFocus={() => {
+                          clearErrors('code');
+                        }}
+                        maxLength={6}
+                        {...register('code', {
+                          onChange: handleCodeChange,
+                        })}
+                        error={errors.code?.message}
+                        className="w-full"
+                        // value={form}
+                      />
+                    </div>
+
+                    <div className="text-sm">
+                      <Link
+                        href="#"
+                        className="text-[var(--hyperlink)]"
+                        onClick={() => getOtp()}
+                      >
+                        {CLICK_HERE_TO_REQUEST_A_NEW_AUTHENTICATION_CODE}
+                      </Link>
+                    </div>
+                  </div>
                 </div>
               </div>
-              </div>
-
-
             </div>
           </Card>
 
@@ -229,10 +235,10 @@ const TwoFactAuthCodeEntryPage = () => {
             </Button>
 
             <Button
-              variant={!isValid || isVerifying ? 'disable' : 'primary'}
+              variant={!isFormValid ? 'disable' : 'primary'}
               className="h-full disabled:cursor-not-allowed disabled:opacity-50"
               onClick={handleSubmit(onSubmit)}
-              disabled={!isValid || isVerifying}
+              disabled={!isFormValid || isVerifying}
             >
               {CONFIRM}
             </Button>

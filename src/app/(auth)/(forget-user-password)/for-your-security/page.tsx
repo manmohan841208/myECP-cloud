@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/store/store';
 import { useValidateSecurityAnswersMutation } from '@/store/services/validateSQApi';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   securityQuestionsSchema,
@@ -44,11 +44,18 @@ const ForYourSecurityPage = () => {
     register,
     handleSubmit,
     clearErrors,
+    control,
     formState: { errors, isValid },
   } = useForm<SecurityQuestionsFormValues>({
     resolver: zodResolver(securityQuestionsSchema),
     mode: 'onBlur',
   });
+
+  // ✅ Watch all form values
+  const values = useWatch({ control });
+
+  // ✅ Check validity using Zod schema
+  const isFormValid = securityQuestionsSchema.safeParse(values).success;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setErrorMessage('');
@@ -109,15 +116,15 @@ const ForYourSecurityPage = () => {
               className="flex flex-col gap-4"
               onSubmit={handleSubmit((data: any) => validate(data))}
             >
-              <Card className="customCard flex flex-col  md:p-6 lg:px-6">
+              <Card className="customCard flex flex-col md:p-6 lg:px-6">
                 <div className="flex-1">
                   <InputField
                     label={
                       <div className="flex gap-1">
                         <p className="text-black">
                           {securityQuestions?.Question1Text}
+                          <span className="text-[var(--text-error)] pr-1">*</span>
                         </p>
-                        <span className="text-[var(--text-error)]">*</span>
                       </div>
                     }
                     {...register('Answer1', {
@@ -140,8 +147,9 @@ const ForYourSecurityPage = () => {
                       <div className="flex gap-1">
                         <p className="text-black">
                           {securityQuestions?.Question2Text}
+                          <span className="text-[var(--text-error)] pr-1">*</span>
                         </p>
-                        <span className="text-[var(--text-error)]">*</span>
+                        
                       </div>
                     }
                     {...register('Answer2', {
@@ -167,9 +175,9 @@ const ForYourSecurityPage = () => {
                 </Button>
 
                 <Button
-                  variant={isValid ? 'primary' : 'disable'}
+                  variant={isFormValid ? 'primary' : 'disable'}
                   className="h-full disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={!isValid || isLoading}
+                  disabled={!isFormValid || isLoading}
                   type="submit"
                 >
                   {RESET_PASSWORD}

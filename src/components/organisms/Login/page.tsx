@@ -183,6 +183,7 @@ const Login = () => {
                       setErrorMessage('');
                     },
                   })}
+                  autoFocus={originalId ? false : true}
                   name="UserName"
                   className="w-full"
                   // error={errors.UserName?.message}
@@ -215,6 +216,7 @@ const Login = () => {
               <div className="flex flex-col gap-1">
                 <InputField
                   label={USER_PASSWORD_LABEL}
+                  autoFocus={originalId ? true : false}
                   type={showPassword ? 'text' : 'password'}
                   className="w-full"
                   {...register('password')}
