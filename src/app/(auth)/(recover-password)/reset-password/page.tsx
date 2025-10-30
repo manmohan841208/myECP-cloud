@@ -23,7 +23,7 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from '@/components/ui/popover';
-import { NotSecure, BlackEyeOpen, Eye } from '@/assets/svg';
+import { NotSecure, BlackEyeOpen, BlackEyeClose } from '@/assets/svg';
 import Image from '@/components/atoms/Image';
 
 const ResetPasswordPage = () => {
@@ -53,6 +53,8 @@ const ResetPasswordPage = () => {
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [password, setPassword] = useState('');
   const [open, setOpen] = useState(false);
@@ -144,7 +146,7 @@ const ResetPasswordPage = () => {
                             },
                             onBlur: () => setOpen(false),
                           })}
-                          type="password"
+                          type={showNewPassword ? 'text' : 'password'}
                           error={errors.NewPassword?.message}
                           name="NewPassword"
                           className="w-full"
@@ -155,8 +157,14 @@ const ResetPasswordPage = () => {
                           iconRight={
                             errors.NewPassword?.message
                               ? NotSecure
-                              : BlackEyeOpen
+                              : showNewPassword
+                                ? BlackEyeClose
+                                : BlackEyeOpen
                           }
+                          onIconClick={() =>
+                            setShowNewPassword((prev) => !prev)
+                          }
+                          
                         />
                       </div>
                     </PopoverTrigger>
@@ -179,14 +187,19 @@ const ResetPasswordPage = () => {
                     {...register('ConfirmPassword')}
                     error={errors.ConfirmPassword?.message}
                     name="ConfirmPassword"
-                    type="password"
+                    type={showConfirmPassword ? 'text' : 'password'}
                     className="w-full"
                     onFocus={() => {
                       clearErrors('ConfirmPassword');
                     }}
                     iconRight={
-                      errors.ConfirmPassword?.message ? NotSecure : BlackEyeOpen
+                      errors.ConfirmPassword?.message
+                        ? NotSecure
+                        : showConfirmPassword
+                          ? BlackEyeClose
+                          : BlackEyeOpen
                     }
+                    onIconClick={() => setShowConfirmPassword((prev) => !prev)}
                   />
                 </div>
               </Card>

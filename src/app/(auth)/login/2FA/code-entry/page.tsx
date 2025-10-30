@@ -137,7 +137,7 @@ const TwoFactAuthCodeEntryPage = () => {
         className="w-full bg-[var(--color-white)] !p-0 md:max-w-[860px]"
       >
         {(isVerifying || isLoading) && <Loader className="mx-auto mb-4" />}
-        <div className="flex flex-col gap-4 px-4">
+        <div className="flex flex-col gap-4 px-4 pt-4">
           {showError && (
             <CustomAlert
               type="error"
@@ -149,7 +149,7 @@ const TwoFactAuthCodeEntryPage = () => {
             />
           )}
 
-          <div className="flex justify-end pt-3">
+          <div className="flex justify-end">
             <b className="!text-[14px]">
               <span className="px-1 text-[var(--text-error)]">*</span>
               {REQUIRED_FIELDS}

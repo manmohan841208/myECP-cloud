@@ -30,6 +30,7 @@ import {
 } from '@/constants/securityQuestionsConstants';
 import { CANCEL, CONTINUE, REQUIRED_FIELDS } from '@/constants/commonConstants';
 import { setSession } from '@/lib/session';
+import { setCookie } from '@/components/utils/cookies';
 
 export default function SecurityForm() {
   const [securityQuestion, setSecurityQuestion] = useState('');
@@ -50,10 +51,11 @@ export default function SecurityForm() {
   const {
     register,
     handleSubmit,
+    clearErrors,
     formState: { errors, isValid },
   } = useForm<SecurityQuestionFormValues>({
     resolver: zodResolver(securityQuestionSchema),
-    mode: 'onChange',
+    mode: 'onBlur',
     defaultValues: {
       answer: '',
       rememberDevice: false,
@@ -93,6 +95,7 @@ export default function SecurityForm() {
           'rememberDevice',
           rememberDevice ? 'true' : 'false',
         );
+        setCookie('rememberDevice', rememberDevice ? 'true' : 'false', 7);
         setSession(response?.Token);
         localStorage.setItem('userInfo', response);
         dispatch(setAuthFromStorage(response?.Token));
@@ -117,16 +120,11 @@ export default function SecurityForm() {
       >
         {isLoading && <Loader className="mx-auto mb-4" />}
         <div className="flex flex-col gap-4 px-4">
-          {showError && (
-            <CustomAlert
-              type="error"
-              description={errorMessage}
-            />
-          )}
+          {showError && <CustomAlert type="error" description={errorMessage} />}
 
-          <div className="flex justify-end ">
-            <b className='!text-[14px]'>
-              <span className="px-1 text-[var(--text-error)] ">*</span>
+          <div className="flex justify-end">
+            <b className="!text-[14px]">
+              <span className="px-1 text-[var(--text-error)]">*</span>
               {REQUIRED_FIELDS}
             </b>
           </div>
@@ -143,20 +141,19 @@ export default function SecurityForm() {
               <InputField
                 type="text"
                 {...register('answer')}
+                onFocus={() => {
+                  clearErrors('answer');
+                }}
+                error={errors?.answer?.message}
                 label={
                   <>
                     {securityQuestion ? securityQuestion : ''}{' '}
                     <span className="text-[var(--text-error)]">*</span>
                   </>
                 }
-                className="w-full border-[2px] border-[var(--primary-color)] "
+                name="answer"
+                className="w-full border-black text-base text-black sm:w-1/2"
               />
-
-              {errors.answer && (
-                <p className="mt-1 text-sm text-(var(--color-red))">
-                  {errors.answer.message}
-                </p>
-              )}
 
               <div>
                 <CustomCheckbox

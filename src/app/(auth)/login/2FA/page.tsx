@@ -62,7 +62,11 @@ const TwoFactorAuthPage = () => {
     resolver: zodResolver(twoFactorSchema),
     mode: 'onChange',
     defaultValues: {
-      otpOption: '',
+      otpOption: userData?.IsSMSOptIn
+        ? 'SMS'
+        : userData?.IsTwoFAEmailOptIn
+          ? 'Email'
+          : '',
     },
   });
 
@@ -120,7 +124,7 @@ const TwoFactorAuthPage = () => {
                 }
               />
             ))}
-          <div className="flex justify-end pt-3">
+          <div className="flex justify-end pt-4">
             <b className="!text-[14px]">
               <span className="px-1 text-[var(--text-error)]">*</span>
               {REQUIRED_FIELDS}
@@ -139,9 +143,9 @@ const TwoFactorAuthPage = () => {
             }
           >
             <div className="px-3">
-              <div className="flex flex-col py-9">
+              <div className="flex flex-col py-[40px]">
                 <RadioGroup
-                  className="flex flex-col gap-9"
+                  className="flex flex-col gap-[40px]"
                   value={watch('otpOption')}
                   {...register('otpOption')}
                   onValueChange={(value) =>
@@ -155,11 +159,14 @@ const TwoFactorAuthPage = () => {
                       <Image
                         src={Phone}
                         alt="phone-img"
-                        className="opacity-35"
+                        className={` ${userData?.IsSMSOptIn ? '' : 'opacity-35'}`}
                       />
                     </div>
                     <div>
-                      <Label htmlFor="mobile" className="text-base font-bold">
+                      <Label
+                        htmlFor="mobile"
+                        className={`text-base font-bold ${userData?.IsSMSOptIn ? '' : 'text-[var(--color-disabled-text)]'}`}
+                      >
                         {PHONE}
                       </Label>
                       <div className="flex items-center justify-start gap-1">
@@ -173,7 +180,9 @@ const TwoFactorAuthPage = () => {
                           }
                           disabled={!userData?.IsSMSOptIn}
                         />
-                        <span>
+                        <span
+                          className={` ${userData?.IsSMSOptIn ? '' : 'text-[var(--color-disabled-text)]'}`}
+                        >
                           {maskPhone(
                             userData?.MobileNo
                               ? userData?.MobileNo
@@ -181,7 +190,9 @@ const TwoFactorAuthPage = () => {
                           )}
                         </span>
                       </div>
-                      <div className="pl-4">
+                      <div
+                        className={`pl-4 ${userData?.IsSMSOptIn ? '' : 'text-[var(--color-disabled-text)]'}`}
+                      >
                         <p>
                           {YOU_ARE_NOT_ENROLLED_TO_RECIEVE_2FA_CODE_VIA_TEXT}
                         </p>
@@ -189,14 +200,22 @@ const TwoFactorAuthPage = () => {
                       </div>
                     </div>
                   </div>
+
                   <div className="flex items-center gap-3 pl-4">
                     <div
                       className={`flex h-15 w-15 items-center justify-center ${userData?.IsTwoFAEmailOptIn ? '' : 'text-[var(--color-disabled-text)]'}`}
                     >
-                      <Image src={Email} alt="email-img" />
+                      <Image
+                        src={Email}
+                        alt="email-img"
+                        className={` ${userData?.IsTwoFAEmailOptIn ? '' : 'opacity-35'}`}
+                      />
                     </div>
                     <div>
-                      <Label htmlFor="email" className="text-base font-bold">
+                      <Label
+                        htmlFor="email"
+                        className={`text-base font-bold ${userData?.IsTwoFAEmailOptIn ? '' : 'text-[var(--color-disabled-text)]'}`}
+                      >
                         {EMAIL}
                       </Label>
                       <div className="flex items-center justify-center gap-1">
@@ -210,14 +229,18 @@ const TwoFactorAuthPage = () => {
                           }
                           disabled={!userData?.IsTwoFAEmailOptIn}
                         />
-                        <span>{maskEmail(userData?.EmailAddress)}</span>
+                        <span
+                          className={` ${userData?.IsTwoFAEmailOptIn ? '' : 'text-[var(--color-disabled-text)]'}`}
+                        >
+                          {maskEmail(userData?.EmailAddress)}
+                        </span>
                       </div>
                     </div>
                   </div>
                 </RadioGroup>
               </div>
 
-              <div className="pb-5 text-sm">
+              <div className="pb-6 text-sm">
                 {
                   PLEASE_CALL_IF_YOU_NO_LONGER_HAVE_ACCESS_TO_THIS_EMAIL_OR_PHONE
                 }

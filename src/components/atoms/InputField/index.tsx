@@ -15,6 +15,7 @@ interface InputFieldProps extends React.ComponentProps<'input'> {
   helpWidth?: string | number;
   placeholder?: string;
   apiError?: boolean;
+  onIconClick?: () => void; // ✅ new optional prop
 }
 
 const InputField: React.FC<InputFieldProps> = ({
@@ -28,6 +29,7 @@ const InputField: React.FC<InputFieldProps> = ({
   helpWidth,
   placeholder = '',
   apiError = false,
+  onIconClick,
   ...props
 }) => {
   const hasError = error !== undefined;
@@ -83,9 +85,31 @@ const InputField: React.FC<InputFieldProps> = ({
           placeholder={placeholder}
           {...props}
         />
-        {iconRight && (
+        {/* {iconRight && (
           <div className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer text-[var(--color-grey-medium)]">
             <Image src={iconRight as string} alt="img" />
+          </div>
+        )} */}
+
+        {iconRight && (
+          <div
+            className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer text-[var(--color-grey-medium)] h-10 w-10 flex justify-center items-center "
+            onMouseDown={(e) => {
+              e.preventDefault(); // ✅ Prevent input blur
+              onIconClick?.(); // ✅ Call the optional click handler
+            }}
+          >
+            
+          {typeof iconRight === 'string' ? (
+                <Image src={iconRight} width={24} height={24} alt="icon" />
+              ) : React.isValidElement(iconRight) ? (
+                iconRight
+              ) : typeof iconRight === 'object' &&
+                iconRight !== null &&
+                'src' in iconRight ? (
+                <Image src={(iconRight as { src: string }).src} width={24} height={24} alt="icon" />
+          ) : null}
+
           </div>
         )}
       </div>

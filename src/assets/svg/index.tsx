@@ -32,6 +32,7 @@ export { default as DummyCardImage } from '@/assets/svg/extra/dummy-card.png';
 export { default as PointsImg } from '@/assets/svg/extra/points.png';
 export { default as RewardImg } from '@/assets/svg/extra/rewording.png';
 export { default as BlackEyeOpen } from '@/assets/svg/black/blackEyeOpen.svg';
+export { default as BlackEyeClose } from '@/assets/svg/black/blackEyeClose.svg';
 export { default as BannerImage2 } from '@/assets/svg/extra/banner-image2.png';
 export { default as Email } from '@/assets/svg/extra/email.svg';
 export { default as Phone } from '@/assets/svg/extra/phone.svg';

@@ -1,13 +1,11 @@
-import React from "react";
+import React from 'react';
 
-export default function NotAvailable() {
+export default function NotAvailable({ title, description }: any) {
   return (
-    <div className="flex items-center justify-center h-screen bg-white text-gray-800">
-      <div className="text-center px-4">
-        <h1 className="text-4xl font-semibold mb-2">Coming Soon</h1>
-        <p className="text-md text-gray-500">
-          We're crafting something great. Stay tuned!
-        </p>
+    <div className="flex h-screen items-center justify-center bg-white text-gray-800">
+      <div className="px-4 text-center">
+        <h1 className="mb-2 text-4xl font-semibold">{title}</h1>
+        <p className="text-md text-gray-500">{description}</p>
       </div>
     </div>
   );
