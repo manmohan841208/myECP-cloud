@@ -1,76 +1,40 @@
-options:
-  logging: CLOUD_LOGGING_ONLY
-
-substitutions:
-  _REGION: 'europe-west1'
-  _SERVICE: 'myecp-cloud'
-  _REPO: 'myecp'
-  _BRANCH: 'develop'
-  _IMAGE: 'europe-west1-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}'
-
 steps:
-  # Step 1: Determine next semantic version (auto-increment)
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    id: 'get-next-version'
+  - name: 'gcr.io/cloud-builders/git'
     entrypoint: 'bash'
     args:
-      - -c
+      - '-c'
       - |
-        echo "🔍 Fetching latest image tag from Artifact Registry..."
-        LAST_TAG=$(gcloud artifacts docker tags list ${_IMAGE} --format='get(tag)' --sort-by=~createTime | head -n1)
-        echo "Last tag found: $LAST_TAG"
+        LAST_TAG=$(gcloud artifacts docker tags list \
+          asia-south1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud \
+          --format='value(TAG)' --sort-by=~CREATE_TIME --limit=1)
 
         if [[ -z "$LAST_TAG" ]]; then
-          NEW_VERSION="1.1.1"
+          NEXT_TAG="v1.1.1"
         else
-          MAJOR=$(echo $LAST_TAG | cut -d. -f1 | tr -dc '0-9')
-          MINOR=$(echo $LAST_TAG | cut -d. -f2 | tr -dc '0-9')
-          PATCH=$(echo $LAST_TAG | cut -d. -f3 | cut -d- -f1 | tr -dc '0-9')
-
-          PATCH=$((PATCH + 1))
-          if [[ $PATCH -gt 10 ]]; then
-            PATCH=1
-            MINOR=$((MINOR + 1))
-            if [[ $MINOR -gt 10 ]]; then
-              MINOR=1
-              MAJOR=$((MAJOR + 1))
-            fi
-          fi
-          NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+          BASE=$(echo $LAST_TAG | grep -oE '[0-9]+$')
+          PREFIX=$(echo $LAST_TAG | sed 's/[0-9]\+$//')
+          NEXT_NUM=$((BASE + 1))
+          NEXT_TAG="${PREFIX}${NEXT_NUM}"
         fi
 
-        echo "📦 New version: $NEW_VERSION"
-        echo "NEW_VERSION=$NEW_VERSION" >> /workspace/version.env
+        echo "Next tag: $NEXT_TAG" 
+        echo "$NEXT_TAG" > next_tag.txt
 
-  # Step 2: Build Docker image with the new version
   - name: 'gcr.io/cloud-builders/docker'
     args:
       [
-        'build',
-        '--no-cache',
-        '-t', '${_IMAGE}:${_BRANCH}-v$(cat /workspace/version.env | grep NEW_VERSION | cut -d= -f2)-${SHORT_SHA}',
-        '.'
+        "build",
+        "-t",
+        "asia-south1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:$(cat next_tag.txt)",
+        "."
       ]
 
-  # Step 3: Push to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
     args:
-      ['push', '${_IMAGE}:${_BRANCH}-v$(cat /workspace/version.env | grep NEW_VERSION | cut -d= -f2)-${SHORT_SHA}']
-
-  # Step 4: Deploy to Cloud Run
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: 'bash'
-    args:
-      - -c
-      - |
-        VERSION=$(cat /workspace/version.env | grep NEW_VERSION | cut -d= -f2)
-        echo "🚀 Deploying ${_IMAGE}:${_BRANCH}-v${VERSION}-${SHORT_SHA} to Cloud Run..."
-        gcloud run deploy ${_SERVICE} \
-          --image ${_IMAGE}:${_BRANCH}-v${VERSION}-${SHORT_SHA} \
-          --region ${_REGION} \
-          --platform managed \
-          --allow-unauthenticated \
-          --quiet
+      [
+        "push",
+        "asia-south1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:$(cat next_tag.txt)"
+      ]
 
 images:
-  - '${_IMAGE}:${_BRANCH}-v$(cat /workspace/version.env | grep NEW_VERSION | cut -d= -f2)-${SHORT_SHA}'
+  - "asia-south1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:$(cat next_tag.txt)"
