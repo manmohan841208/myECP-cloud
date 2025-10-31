@@ -28,7 +28,7 @@ steps:
         echo "Next tag will be: $NEXT_TAG"
         echo "$NEXT_TAG" > next_tag.txt
 
-  # Step 2 – Build Docker image (always fresh)
+  # Step 2 – Build Docker image
   - name: gcr.io/cloud-builders/docker
     entrypoint: bash
     args:
@@ -40,7 +40,7 @@ steps:
         echo "🏗️ Building $IMAGE ..."
         docker build --no-cache -t "$IMAGE" .
 
-  # Step 3 – Push to Artifact Registry
+  # Step 3 – Push image to Artifact Registry
   - name: gcr.io/cloud-builders/docker
     entrypoint: bash
     args:
@@ -52,7 +52,7 @@ steps:
         echo "📦 Pushing $IMAGE ..."
         docker push "$IMAGE"
 
-  # Step 4 – Deploy to Cloud Run
+  # Step 4 – Deploy to Cloud Run (Europe-west1)
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     entrypoint: bash
     args:
@@ -61,7 +61,7 @@ steps:
         set -e
         TAG=$(cat next_tag.txt)
         IMAGE="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:${TAG}"
-        echo "🚀 Deploying $IMAGE to Cloud Run ..."
+        echo "🚀 Deploying $IMAGE ..."
         gcloud run deploy myecp-cloud \
           --image "$IMAGE" \
           --region europe-west1 \
