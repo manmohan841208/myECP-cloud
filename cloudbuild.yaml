@@ -2,68 +2,69 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 steps:
-  # Step 1 – Determine next tag (auto-increment + branch)
+  # Step 1 – Determine next tag
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
-    entrypoint: bash
+    entrypoint: /bin/bash
     args:
       - -c
       - |
-        set -e
+        set -euo pipefail
+        echo "🔍 Determining next tag..."
+
         REPO="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud"
         BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "develop")
 
-        echo "🔍 Checking existing tags in $REPO ..."
+        echo "Fetching last tag for $REPO..."
         LAST_TAG=$(gcloud artifacts docker tags list "$REPO" \
           --format='value(TAG)' --sort-by=~CREATE_TIME --limit=1 2>/dev/null || true)
 
-        echo "Last tag: ${LAST_TAG:-none}"
         if [[ -z "$LAST_TAG" ]]; then
           NEXT_TAG="${BRANCH}-v1.1.1"
         else
           BASE=$(echo "$LAST_TAG" | grep -oE '[0-9]+$' || echo 0)
           PREFIX=$(echo "$LAST_TAG" | sed 's/[0-9]\+$//')
-          NEXT_TAG="${PREFIX}$((BASE+1))"
+          NEXT_TAG="${PREFIX}$((BASE + 1))"
         fi
 
-        echo "Next tag will be: $NEXT_TAG"
+        echo "✅ Next tag: $NEXT_TAG"
         echo "$NEXT_TAG" > next_tag.txt
 
   # Step 2 – Build Docker image
   - name: gcr.io/cloud-builders/docker
-    entrypoint: bash
+    entrypoint: /bin/bash
     args:
       - -c
       - |
-        set -e
+        set -euo pipefail
         TAG=$(cat next_tag.txt)
         IMAGE="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:${TAG}"
-        echo "🏗️ Building $IMAGE ..."
-        docker build --no-cache -t "$IMAGE" .
+        echo "🏗️ Building image: ${IMAGE}"
+        docker build --no-cache -t "${IMAGE}" .
 
-  # Step 3 – Push image to Artifact Registry
+  # Step 3 – Push Docker image
   - name: gcr.io/cloud-builders/docker
-    entrypoint: bash
+    entrypoint: /bin/bash
     args:
       - -c
       - |
-        set -e
+        set -euo pipefail
         TAG=$(cat next_tag.txt)
         IMAGE="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:${TAG}"
-        echo "📦 Pushing $IMAGE ..."
-        docker push "$IMAGE"
+        echo "📦 Pushing image: ${IMAGE}"
+        docker push "${IMAGE}"
 
-  # Step 4 – Deploy to Cloud Run (Europe-west1)
+  # Step 4 – Deploy to Cloud Run
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
-    entrypoint: bash
+    entrypoint: /bin/bash
     args:
       - -c
       - |
-        set -e
+        set -euo pipefail
         TAG=$(cat next_tag.txt)
         IMAGE="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:${TAG}"
-        echo "🚀 Deploying $IMAGE ..."
+        echo "🚀 Deploying ${IMAGE} ..."
         gcloud run deploy myecp-cloud \
-          --image "$IMAGE" \
+          --image "${IMAGE}" \
           --region europe-west1 \
           --platform managed \
           --allow-unauthenticated \
