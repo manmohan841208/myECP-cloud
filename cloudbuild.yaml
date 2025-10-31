@@ -1,43 +1,90 @@
 options:
   logging: CLOUD_LOGGING_ONLY
-  
+
+substitutions:
+  _REGION: "europe-west1"
+  _SERVICE: "myecp-cloud"
+  _REPO: "myecp-repo"
+  _IMAGE_NAME: "myecp-cloud"
+
 steps:
-  - name: 'gcr.io/cloud-builders/git'
-    entrypoint: 'bash'
+  # Step 1: Determine next version tag
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    id: "get-next-tag"
+    entrypoint: "bash"
     args:
-      - '-c'
+      - -c
       - |
+        set -e
+        echo "🔍 Fetching last tag..."
         LAST_TAG=$(gcloud artifacts docker tags list \
-          asia-south1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud \
+          europe-west1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME} \
           --format='value(TAG)' --sort-by=~CREATE_TIME --limit=1)
 
         if [[ -z "$LAST_TAG" ]]; then
           NEXT_TAG="v1.1.1"
         else
-          BASE=$(echo $LAST_TAG | grep -oE '[0-9]+$')
-          PREFIX=$(echo $LAST_TAG | sed 's/[0-9]\+$//')
-          NEXT_NUM=$((BASE + 1))
-          NEXT_TAG="${PREFIX}${NEXT_NUM}"
+          echo "Last tag: $LAST_TAG"
+          # Extract major, minor, and patch numbers
+          MAJOR=$(echo $LAST_TAG | sed -E 's/v([0-9]+)\..*/\1/')
+          MINOR=$(echo $LAST_TAG | sed -E 's/v[0-9]+\.([0-9]+)\..*/\1/')
+          PATCH=$(echo $LAST_TAG | sed -E 's/.*\.([0-9]+)$/\1/')
+          
+          if [[ "$PATCH" -ge 10 ]]; then
+            # Reset patch and increment major
+            MAJOR=$((MAJOR + 1))
+            MINOR=1
+            PATCH=1
+          else
+            PATCH=$((PATCH + 1))
+          fi
+          
+          NEXT_TAG="v${MAJOR}.${MINOR}.${PATCH}"
         fi
 
-        echo "Next tag: $NEXT_TAG" 
-        echo "$NEXT_TAG" > next_tag.txt
+        echo "✅ Next tag: $NEXT_TAG"
+        echo $NEXT_TAG > /workspace/next_tag.txt
 
-  - name: 'gcr.io/cloud-builders/docker'
+  # Step 2: Build Docker image
+  - name: "gcr.io/cloud-builders/docker"
+    id: "build"
+    entrypoint: "bash"
     args:
-      [
-        "build",
-        "-t",
-        "asia-south1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:$(cat next_tag.txt)",
-        "."
-      ]
+      - -c
+      - |
+        TAG=$(cat /workspace/next_tag.txt)
+        IMAGE="europe-west1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:${TAG}"
+        echo "🛠️ Building image $IMAGE"
+        docker build -t $IMAGE .
 
-  - name: 'gcr.io/cloud-builders/docker'
+  # Step 3: Push image to Artifact Registry
+  - name: "gcr.io/cloud-builders/docker"
+    id: "push"
+    entrypoint: "bash"
     args:
-      [
-        "push",
-        "asia-south1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:$(cat next_tag.txt)"
-      ]
+      - -c
+      - |
+        TAG=$(cat /workspace/next_tag.txt)
+        IMAGE="europe-west1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:${TAG}"
+        echo "📤 Pushing image $IMAGE"
+        docker push $IMAGE
+
+  # Step 4: Deploy to Cloud Run
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    id: "deploy"
+    entrypoint: "bash"
+    args:
+      - -c
+      - |
+        TAG=$(cat /workspace/next_tag.txt)
+        IMAGE="europe-west1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:${TAG}"
+        echo "🚀 Deploying $IMAGE to Cloud Run..."
+        gcloud run deploy ${_SERVICE} \
+          --image $IMAGE \
+          --region ${_REGION} \
+          --platform managed \
+          --allow-unauthenticated \
+          --quiet
 
 images:
-  - "asia-south1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:$(cat next_tag.txt)"
+  - "europe-west1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:$(cat /workspace/next_tag.txt)"
