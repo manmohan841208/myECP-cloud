@@ -8,14 +8,14 @@ steps:
       - build
       - '--no-cache'
       - '-t'
-      - 'europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:1.1.5'
+      - 'europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp/myecp-cloud:1.1.5'  # ⬅️ manually update tag before each build
       - '.'
 
   # Step 2 – Push image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - push
-      - 'europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:1.1.5'
+      - 'europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp/myecp-cloud:1.1.5'  # ⬅️ same tag as above
 
   # Step 3 – Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -24,7 +24,7 @@ steps:
       - deploy
       - 'myecp-cloud'
       - '--image'
-      - 'europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:1.1.5'
+      - 'europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp/myecp-cloud:1.1.5'
       - '--region'
       - 'europe-west1'
       - '--platform'
