@@ -8,7 +8,7 @@ substitutions:
   _IMAGE_NAME: "myecp-cloud"
 
 steps:
-  # Step 1: Determine next version tag
+  # Step 1: Determine next version tag dynamically
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     id: "get-next-tag"
     entrypoint: "bash"
@@ -16,7 +16,8 @@ steps:
       - -c
       - |
         set -e
-        echo "🔍 Fetching last tag..."
+        echo "🔍 Checking latest tag in Artifact Registry..."
+
         LAST_TAG=$(gcloud artifacts docker tags list \
           europe-west1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME} \
           --format='value(TAG)' --sort-by=~CREATE_TIME --limit=1)
@@ -25,27 +26,25 @@ steps:
           NEXT_TAG="v1.1.1"
         else
           echo "Last tag: $LAST_TAG"
-          # Extract major, minor, and patch numbers
           MAJOR=$(echo $LAST_TAG | sed -E 's/v([0-9]+)\..*/\1/')
           MINOR=$(echo $LAST_TAG | sed -E 's/v[0-9]+\.([0-9]+)\..*/\1/')
           PATCH=$(echo $LAST_TAG | sed -E 's/.*\.([0-9]+)$/\1/')
-          
+
           if [[ "$PATCH" -ge 10 ]]; then
-            # Reset patch and increment major
             MAJOR=$((MAJOR + 1))
             MINOR=1
             PATCH=1
           else
             PATCH=$((PATCH + 1))
           fi
-          
+
           NEXT_TAG="v${MAJOR}.${MINOR}.${PATCH}"
         fi
 
-        echo "✅ Next tag: $NEXT_TAG"
-        echo $NEXT_TAG > /workspace/next_tag.txt
+        echo "✅ Next tag will be: $NEXT_TAG"
+        echo "$NEXT_TAG" > /workspace/next_tag.txt
 
-  # Step 2: Build Docker image
+  # Step 2: Build image using generated tag
   - name: "gcr.io/cloud-builders/docker"
     id: "build"
     entrypoint: "bash"
@@ -57,7 +56,7 @@ steps:
         echo "🛠️ Building image $IMAGE"
         docker build -t $IMAGE .
 
-  # Step 3: Push image to Artifact Registry
+  # Step 3: Push image
   - name: "gcr.io/cloud-builders/docker"
     id: "push"
     entrypoint: "bash"
@@ -87,4 +86,4 @@ steps:
           --quiet
 
 images:
-  - "europe-west1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}:$(cat /workspace/next_tag.txt)"
+  - "europe-west1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE_NAME}"
