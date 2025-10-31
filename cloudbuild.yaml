@@ -1,7 +1,7 @@
 options:
   logging: CLOUD_LOGGING_ONLY
 
-# ⚙️ Update this TAG value manually each time before running the build
+# 🔢 Change this manually before each build (example: 1.1.6 → 1.1.7)
 substitutions:
   _TAG: "1.1.5"
 
@@ -14,7 +14,8 @@ steps:
       - -c
       - |
         set -e
-        IMAGE="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:${_TAG}"
+        TAG="${_TAG}"
+        IMAGE="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:${TAG}"
         echo "🏗️ Building image: $IMAGE ..."
         docker build --no-cache -t "$IMAGE" .
 
@@ -26,7 +27,8 @@ steps:
       - -c
       - |
         set -e
-        IMAGE="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:${_TAG}"
+        TAG="${_TAG}"
+        IMAGE="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:${TAG}"
         echo "📦 Pushing $IMAGE ..."
         docker push "$IMAGE"
 
@@ -38,7 +40,8 @@ steps:
       - -c
       - |
         set -e
-        IMAGE="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:${_TAG}"
+        TAG="${_TAG}"
+        IMAGE="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:${TAG}"
         echo "🚀 Deploying $IMAGE to Cloud Run ..."
         gcloud run deploy myecp-cloud \
           --image "$IMAGE" \
@@ -47,5 +50,6 @@ steps:
           --allow-unauthenticated \
           --quiet
 
+# 👇 Remove dynamic substitution here — it breaks builds
 images:
   - "europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud"
