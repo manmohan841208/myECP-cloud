@@ -2,80 +2,40 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 substitutions:
-  _REGION: "europe-west1"
-  _SERVICE: "myecp-cloud"
-  _REPO: "myecp-repo"
-  _BRANCH: "develop"
-  _IMAGE_BASE: "europe-west1-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}"
+  _REGION: 'asia-south1'
+  _SERVICE: 'myecp-cloud'
+  _REPO: 'myecp-repo'
+  _BRANCH: 'develop'
+  _VERSION_TAG: 'v1.1.3' # you can manually bump this for each release
+  _IMAGE: 'asia-south1-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}'
 
 steps:
-  # Step 1: Fetch latest version number from Artifact Registry
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    id: 'get_version'
-    entrypoint: 'bash'
-    args:
-      - -c
-      - |
-        echo "🔍 Checking latest version tag..."
-        LAST_TAG=$(gcloud artifacts docker tags list ${_IMAGE_BASE} \
-          --format='value(tag)' \
-          --filter="tag~${_SERVICE}-${_BRANCH}-" \
-          | sort -V | tail -n 1)
-
-        if [[ -z "$LAST_TAG" ]]; then
-          NEW_TAG="${_SERVICE}-${_BRANCH}-1.1.1"
-        else
-          VERSION=$(echo "$LAST_TAG" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+$')
-          IFS='.' read -r MAJ MIN PAT <<< "$VERSION"
-          PAT=$((PAT+1))
-          NEW_TAG="${_SERVICE}-${_BRANCH}-${MAJ}.${MIN}.${PAT}"
-        fi
-
-        echo "✅ New version: $NEW_TAG"
-        echo "NEW_TAG=$NEW_TAG" >> /workspace/version.env
-
-  # Step 2: Build Docker image (force fresh build, no cache)
+  # Step 1: Build Docker image (always fresh)
   - name: 'gcr.io/cloud-builders/docker'
-    env:
-      - '$(cat /workspace/version.env)'
-    entrypoint: 'bash'
     args:
-      - -c
-      - |
-        source /workspace/version.env
-        echo "🏗️  Building image ${_IMAGE_BASE}:$NEW_TAG ..."
-        docker build --no-cache -t ${_IMAGE_BASE}:$NEW_TAG -t ${_IMAGE_BASE}:latest .
+      [
+        'build', '--no-cache',
+        '-t', '${_IMAGE}:${_BRANCH}-${_VERSION_TAG}-${SHORT_SHA}',
+        '.'
+      ]
 
-  # Step 3: Push images to Artifact Registry
+  # Step 2: Push image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
-    env:
-      - '$(cat /workspace/version.env)'
-    entrypoint: 'bash'
-    args:
-      - -c
-      - |
-        source /workspace/version.env
-        echo "📦 Pushing ${_IMAGE_BASE}:$NEW_TAG and :latest ..."
-        docker push ${_IMAGE_BASE}:$NEW_TAG
-        docker push ${_IMAGE_BASE}:latest
+    args: ['push', '${_IMAGE}:${_BRANCH}-${_VERSION_TAG}-${SHORT_SHA}']
 
-  # Step 4: Deploy latest image to Cloud Run
+  # Step 3: Deploy new image to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    env:
-      - '$(cat /workspace/version.env)'
     entrypoint: 'bash'
     args:
       - -c
       - |
-        source /workspace/version.env
-        echo "🚀 Deploying ${_SERVICE} with ${_IMAGE_BASE}:$NEW_TAG ..."
+        echo "🚀 Deploying ${_IMAGE}:${_BRANCH}-${_VERSION_TAG}-${SHORT_SHA} to Cloud Run..."
         gcloud run deploy ${_SERVICE} \
-          --image ${_IMAGE_BASE}:$NEW_TAG \
+          --image ${_IMAGE}:${_BRANCH}-${_VERSION_TAG}-${SHORT_SHA} \
           --region ${_REGION} \
           --platform managed \
           --allow-unauthenticated \
           --quiet
-        echo "✅ Deployment successful: Version $NEW_TAG"
 
 images:
-  - '${_IMAGE_BASE}:latest'
+  - '${_IMAGE}:${_BRANCH}-${_VERSION_TAG}-${SHORT_SHA}'
