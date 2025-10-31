@@ -1,20 +1,12 @@
 options:
   logging: CLOUD_LOGGING_ONLY
 
-steps:
-  # Step 1 – Read tag from version/tag.txt
-  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
-    id: "read-tag"
-    entrypoint: bash
-    args:
-      - -c
-      - |
-        set -e
-        TAG=$(cat version/tag.txt)
-        echo "🧾 Using tag: $TAG"
-        echo "$TAG" > /workspace/tag.txt
+# ⚙️ Update this TAG value manually each time before running the build
+substitutions:
+  _TAG: "1.1.5"
 
-  # Step 2 – Build Docker image (always fresh, with no cache)
+steps:
+  # Step 1 – Build Docker image (no cache)
   - name: gcr.io/cloud-builders/docker
     id: "build-image"
     entrypoint: bash
@@ -22,12 +14,11 @@ steps:
       - -c
       - |
         set -e
-        TAG=$(cat /workspace/tag.txt)
-        IMAGE="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:${TAG}"
+        IMAGE="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:${_TAG}"
         echo "🏗️ Building image: $IMAGE ..."
         docker build --no-cache -t "$IMAGE" .
 
-  # Step 3 – Push image to Artifact Registry
+  # Step 2 – Push image to Artifact Registry
   - name: gcr.io/cloud-builders/docker
     id: "push-image"
     entrypoint: bash
@@ -35,12 +26,11 @@ steps:
       - -c
       - |
         set -e
-        TAG=$(cat /workspace/tag.txt)
-        IMAGE="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:${TAG}"
+        IMAGE="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:${_TAG}"
         echo "📦 Pushing $IMAGE ..."
         docker push "$IMAGE"
 
-  # Step 4 – Deploy to Cloud Run
+  # Step 3 – Deploy to Cloud Run
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     id: "deploy"
     entrypoint: bash
@@ -48,8 +38,7 @@ steps:
       - -c
       - |
         set -e
-        TAG=$(cat /workspace/tag.txt)
-        IMAGE="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:${TAG}"
+        IMAGE="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:${_TAG}"
         echo "🚀 Deploying $IMAGE to Cloud Run ..."
         gcloud run deploy myecp-cloud \
           --image "$IMAGE" \
@@ -59,4 +48,4 @@ steps:
           --quiet
 
 images:
-  - "europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:$(cat version/tag.txt)"
+  - "europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud"
