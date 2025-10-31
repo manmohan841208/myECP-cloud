@@ -2,12 +2,12 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 substitutions:
-  _REGION: 'asia-south1'
+  _REGION: 'europe-west1'
   _SERVICE: 'myecp-cloud'
-  _REPO: 'myecp-repo'
+  _REPO: 'myecp'
   _BRANCH: 'develop'
-  _VERSION_TAG: 'v1.1.3' # you can manually bump this for each release
-  _IMAGE: 'asia-south1-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}'
+  _VERSION_TAG: 'v1.1.4'
+  _IMAGE: 'europe-west1-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}'
 
 steps:
   # Step 1: Build Docker image (always fresh)
@@ -21,7 +21,8 @@ steps:
 
   # Step 2: Push image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', '${_IMAGE}:${_BRANCH}-${_VERSION_TAG}-${SHORT_SHA}']
+    args:
+      ['push', '${_IMAGE}:${_BRANCH}-${_VERSION_TAG}-${SHORT_SHA}']
 
   # Step 3: Deploy new image to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
