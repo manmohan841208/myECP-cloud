@@ -2,68 +2,43 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 steps:
-  # Step 0 — read tag from version/tag.txt (if present), else create a timestamp tag
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    id: 'read-tag'
-    entrypoint: 'bash'
-    args:
-      - -c
-      - |
-        set -euo pipefail
-        # If you want to set a custom tag manually: create version/tag.txt in the repo with the tag text (e.g. 1.1.5)
-        if [ -f "version/tag.txt" ]; then
-          TAG="$(cat version/tag.txt | tr -d '[:space:]')"
-        else
-          # default fallback tag (timestamp)
-          TAG="manual-$(date +%Y%m%d%H%M%S)"
-        fi
-        echo "Using TAG=$TAG"
-        # persist tag for other steps
-        echo "$TAG" > /workspace/BUILD_TAG.txt
-
-  # Step 1 — build Docker image (always fresh/no cache)
+  # Step 1 – Build Docker image (always fresh)
   - name: 'gcr.io/cloud-builders/docker'
-    id: 'build'
     entrypoint: 'bash'
     args:
       - -c
       - |
-        set -euo pipefail
-        TAG="$(cat /workspace/BUILD_TAG.txt)"
+        set -e
+        TAG="1.1.6"  # ⬅️ manually update this tag each time before build (e.g., 1.1.7 next time)
         IMAGE="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:${TAG}"
-        echo "Building image: $IMAGE"
+        echo "🏗️ Building image: $IMAGE"
         docker build --no-cache -t "$IMAGE" .
 
-  # Step 2 — push image to Artifact Registry
+  # Step 2 – Push image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
-    id: 'push'
     entrypoint: 'bash'
     args:
       - -c
       - |
-        set -euo pipefail
-        TAG="$(cat /workspace/BUILD_TAG.txt)"
+        set -e
+        TAG="1.1.6"  # ⬅️ same tag as above
         IMAGE="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:${TAG}"
-        echo "Pushing image: $IMAGE"
+        echo "📦 Pushing image: $IMAGE"
         docker push "$IMAGE"
 
-  # Step 3 — deploy to Cloud Run (use the exact image we pushed)
+  # Step 3 – Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    id: 'deploy'
     entrypoint: 'bash'
     args:
       - -c
       - |
-        set -euo pipefail
-        TAG="$(cat /workspace/BUILD_TAG.txt)"
+        set -e
+        TAG="1.1.6"  # ⬅️ same tag as above
         IMAGE="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:${TAG}"
-        echo "Deploying image to Cloud Run: $IMAGE"
+        echo "🚀 Deploying $IMAGE to Cloud Run ..."
         gcloud run deploy myecp-cloud \
           --image "$IMAGE" \
           --region europe-west1 \
           --platform managed \
           --allow-unauthenticated \
           --quiet
-
-# NOTE: don't put a dynamic image string in this top-level `images:` field (it triggers substitution parsing errors).
-# If you want Cloud Build to register images for provenance, you can add a static entry or omit entirely.
