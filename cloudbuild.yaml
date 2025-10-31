@@ -1,46 +1,33 @@
 options:
-  logging: CLOUD_LOGGING_ONLY   # Logs only to Cloud Logging (no GCS bucket)
+  logging: CLOUD_LOGGING_ONLY
 
 steps:
-  # Step 1 – Build Docker image (always builds fresh)
+  # Step 1 – Build Docker image (always fresh)
   - name: 'gcr.io/cloud-builders/docker'
-    entrypoint: 'bash'
     args:
-      - -c
-      - |
-        set -e
-        TAG="1.1.6"  # ⬅️ Update this manually each release (e.g., 1.1.7 next)
-        IMAGE="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:${TAG}"
-        echo "🏗️ Building image: $IMAGE"
-        docker build --no-cache -t "$IMAGE" .
+      - build
+      - '--no-cache'
+      - '-t'
+      - 'europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:1.1.5'
+      - '.'
 
   # Step 2 – Push image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
-    entrypoint: 'bash'
     args:
-      - -c
-      - |
-        set -e
-        TAG="1.1.6"  # must match Step 1
-        IMAGE="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:${TAG}"
-        echo "📦 Pushing image: $IMAGE"
-        docker push "$IMAGE"
+      - push
+      - 'europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:1.1.5'
 
-  # Step 3 – Deploy to Cloud Run (in europe-west1)
+  # Step 3 – Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: 'bash'
     args:
-      - -c
-      - |
-        set -e
-        TAG="1.1.6"  # must match above
-        IMAGE="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:${TAG}"
-        echo "🚀 Deploying $IMAGE to Cloud Run (region: europe-west1)..."
-        gcloud run deploy myecp-cloud \
-          --image "$IMAGE" \
-          --region europe-west1 \
-          --platform managed \
-          --allow-unauthenticated \
-          --quiet
-
-timeout: "1200s"
+      - run
+      - deploy
+      - 'myecp-cloud'
+      - '--image'
+      - 'europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:1.1.5'
+      - '--region'
+      - 'europe-west1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--quiet'
