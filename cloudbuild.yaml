@@ -2,87 +2,69 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 steps:
-  # Step 1: Determine next tag dynamically inside bash
-  - name: 'gcr.io/cloud-builders/gcloud'
-    entrypoint: 'bash'
+  # Step 1 – Determine next tag (auto-increment + branch)
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: bash
     args:
       - -c
       - |
         set -e
+        REPO="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud"
+        BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "develop")
 
-        echo "🔍 Checking latest tag in Artifact Registry..."
-        IMAGE="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud"
+        echo "🔍 Checking existing tags in $REPO ..."
+        LAST_TAG=$(gcloud artifacts docker tags list "$REPO" \
+          --format='value(TAG)' --sort-by=~CREATE_TIME --limit=1 2>/dev/null || true)
 
-        LAST_TAG=$(gcloud artifacts docker tags list "$IMAGE" \
-          --format='value(TAG)' \
-          --sort-by=~CREATE_TIME \
-          --limit=1 2>/dev/null || true)
-
-        echo "Last tag found: ${LAST_TAG:-none}"
-
+        echo "Last tag: ${LAST_TAG:-none}"
         if [[ -z "$LAST_TAG" ]]; then
-          NEXT_TAG="v1.1.1"
+          NEXT_TAG="${BRANCH}-v1.1.1"
         else
-          BASE=$(echo "$LAST_TAG" | grep -oE '[0-9]+$' || echo "0")
+          BASE=$(echo "$LAST_TAG" | grep -oE '[0-9]+$' || echo 0)
           PREFIX=$(echo "$LAST_TAG" | sed 's/[0-9]\+$//')
-          NEXT_NUM=$((BASE + 1))
-
-          # rollover logic example: after 1.1.10 -> v2.1.1
-          if (( NEXT_NUM > 10 )); then
-            MAJOR=$(echo "$PREFIX" | grep -oE '[0-9]+' | head -1)
-            NEXT_MAJOR=$((MAJOR + 1))
-            NEXT_TAG="v${NEXT_MAJOR}.1.1"
-          else
-            NEXT_TAG="${PREFIX}${NEXT_NUM}"
-          fi
+          NEXT_TAG="${PREFIX}$((BASE+1))"
         fi
 
-        echo "🆕 Next tag determined: $NEXT_TAG"
+        echo "Next tag will be: $NEXT_TAG"
         echo "$NEXT_TAG" > next_tag.txt
 
-  # Step 2: Build Docker image with new tag
-  - name: 'gcr.io/cloud-builders/docker'
-    entrypoint: 'bash'
+  # Step 2 – Build Docker image (always fresh)
+  - name: gcr.io/cloud-builders/docker
+    entrypoint: bash
     args:
       - -c
       - |
         set -e
         TAG=$(cat next_tag.txt)
-        IMAGE="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud"
-        echo "🏗️ Building Docker image: $IMAGE:$TAG"
-        docker build --no-cache -t "$IMAGE:$TAG" .
+        IMAGE="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:${TAG}"
+        echo "🏗️ Building $IMAGE ..."
+        docker build --no-cache -t "$IMAGE" .
 
-  # Step 3: Push image to Artifact Registry
-  - name: 'gcr.io/cloud-builders/docker'
-    entrypoint: 'bash'
+  # Step 3 – Push to Artifact Registry
+  - name: gcr.io/cloud-builders/docker
+    entrypoint: bash
     args:
       - -c
       - |
         set -e
         TAG=$(cat next_tag.txt)
-        IMAGE="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud"
-        echo "📤 Pushing Docker image: $IMAGE:$TAG"
-        docker push "$IMAGE:$TAG"
+        IMAGE="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:${TAG}"
+        echo "📦 Pushing $IMAGE ..."
+        docker push "$IMAGE"
 
-  # Step 4: Deploy new tag to Cloud Run
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: 'bash'
+  # Step 4 – Deploy to Cloud Run
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: bash
     args:
       - -c
       - |
         set -e
         TAG=$(cat next_tag.txt)
-        REGION="europe-west1"
-        SERVICE="myecp-cloud"
-        IMAGE="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:$TAG"
-
-        echo "🚀 Deploying $SERVICE with image $IMAGE in region $REGION"
-        gcloud run deploy "$SERVICE" \
+        IMAGE="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:${TAG}"
+        echo "🚀 Deploying $IMAGE to Cloud Run ..."
+        gcloud run deploy myecp-cloud \
           --image "$IMAGE" \
-          --region "$REGION" \
+          --region europe-west1 \
           --platform managed \
           --allow-unauthenticated \
           --quiet
-
-images:
-  - "europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud"
