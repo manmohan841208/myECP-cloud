@@ -9,17 +9,18 @@ steps:
       - |
         set -e
 
-        REPO="asia-south1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud"
+        # Hardcoded Artifact Registry path for Europe-West1 (Belgium)
+        IMAGE_PATH="europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud"
 
-        # Get the last tag from Artifact Registry
-        LAST_TAG=$(gcloud artifacts docker tags list $REPO \
+        echo "Fetching last tag from Artifact Registry: $IMAGE_PATH"
+
+        LAST_TAG=$(gcloud artifacts docker tags list $IMAGE_PATH \
           --format='value(TAG)' \
           --sort-by=~CREATE_TIME \
-          --limit=1)
+          --limit=1 || true)
 
-        echo "Last tag: $LAST_TAG"
+        echo "Last tag found: ${LAST_TAG:-none}"
 
-        # If no tag found, start with v1.1.1
         if [[ -z "$LAST_TAG" ]]; then
           NEXT_TAG="v1.1.1"
         else
@@ -29,26 +30,28 @@ steps:
           NEXT_TAG="${PREFIX}${NEXT_NUM}"
         fi
 
-        echo "Next tag: $NEXT_TAG" 
-        echo $NEXT_TAG > next_tag.txt
+        echo "Next tag: $NEXT_TAG"
+        echo "$NEXT_TAG" > next_tag.txt
 
   - name: 'gcr.io/cloud-builders/docker'
     entrypoint: 'bash'
     args:
       - -c
       - |
+        set -e
         TAG=$(cat next_tag.txt)
-        echo "Building image with tag: $TAG"
-        docker build -t asia-south1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:$TAG .
+        echo "Building Docker image with tag: $TAG"
+        docker build -t europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:$TAG .
 
   - name: 'gcr.io/cloud-builders/docker'
     entrypoint: 'bash'
     args:
       - -c
       - |
+        set -e
         TAG=$(cat next_tag.txt)
         echo "Pushing image with tag: $TAG"
-        docker push asia-south1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:$TAG
+        docker push europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud:$TAG
 
 images:
-  - "asia-south1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud"
+  - "europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp-repo/myecp-cloud"
