@@ -8,4 +8,3 @@ README.md
 .next/cache
 cloudbuild.yaml
 .env
-.env.local
