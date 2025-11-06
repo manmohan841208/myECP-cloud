@@ -1,6 +1,6 @@
-export const USER_ID_LABEL = 'User ID singh manmohan';
+export const USER_ID_LABEL = 'User ID MNM';
 export const USER_PASSWORD_LABEL = 'Password';
-export const LOGIN_BTN = 'Log In --Manmohan';
+export const LOGIN_BTN = 'Log In --MNM';
 export const FORGOT = 'Forgot';
 export const FORGOT_PASSWORD = 'Password';
 export const REMEMBER_USER_ID = 'Remember User ID';
