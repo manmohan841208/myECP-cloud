@@ -1,54 +1,66 @@
 # ==========================================================
-# Cloud Build Configuration for Cloud Run Deployment
-# Manual Tag Versioning + Always New Code + Cloud Logging
+# Cloud Build Configuration for Personal Project
+# Project: organic-edge-475807-v2
 # Region: europe-west1
+# Service: myecp-cloud
+# Build Type: Clean build (no cache) + Auto Deploy
 # ==========================================================
+
+substitutions:
+  _TAG: '1.0.1'  # 👈 bump manually for each release
+  _REGION: 'europe-west1'
+  _SERVICE_NAME_PERSONAL: 'myecp-cloud'
+  _PROJECT_ID_PERSONAL: 'organic-edge-475807-v2'
+  _REPO_PATH_PERSONAL: 'cloud-run-source-deploy/myecp'
+
+steps:
+  # ========================================================
+  # STEP 1: Build Docker image (always fresh)
+  # ========================================================
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      [
+        'build',
+        '--no-cache',  # ensure new image each build
+        '-t', 'europe-west1-docker.pkg.dev/${_PROJECT_ID_PERSONAL}/${_REPO_PATH_PERSONAL}/${_SERVICE_NAME_PERSONAL}:${_TAG}',
+        '.'
+      ]
+
+  # ========================================================
+  # STEP 2: Push image to Artifact Registry
+  # ========================================================
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      [
+        'push',
+        'europe-west1-docker.pkg.dev/${_PROJECT_ID_PERSONAL}/${_REPO_PATH_PERSONAL}/${_SERVICE_NAME_PERSONAL}:${_TAG}'
+      ]
+
+  # ========================================================
+  # STEP 3: Deploy to Cloud Run (Gen1)
+  # ========================================================
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      [
+        'run', 'deploy', '${_SERVICE_NAME_PERSONAL}',
+        '--image', 'europe-west1-docker.pkg.dev/${_PROJECT_ID_PERSONAL}/${_REPO_PATH_PERSONAL}/${_SERVICE_NAME_PERSONAL}:${_TAG}',
+        '--region', '${_REGION}',
+        '--platform', 'managed',
+        '--allow-unauthenticated',
+        '--project', '${_PROJECT_ID_PERSONAL}'
+      ]
+
+# ==========================================================
+# Optional Settings
+# ==========================================================
+
+images:
+  - 'europe-west1-docker.pkg.dev/${_PROJECT_ID_PERSONAL}/${_REPO_PATH_PERSONAL}/${_SERVICE_NAME_PERSONAL}:${_TAG}'
 
 options:
   logging: CLOUD_LOGGING_ONLY
   machineType: E2_MEDIUM
+  substitution_option: 'ALLOW_LOOSE'
+
 timeout: '1200s'
-
-steps:
-  # Step 1 – Build Docker image (always fresh)
-  - name: 'gcr.io/cloud-builders/docker'
-    args:
-      - build
-      - '--no-cache'
-      - '-t'
-      - 'europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp/myecp-cloud:1.1.6'  # ⬅️ manually update tag here before each build
-      - '.'
-
-  # Step 2 – Push image to Artifact Registry
-  - name: 'gcr.io/cloud-builders/docker'
-    args:
-      - push
-      - 'europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp/myecp-cloud:1.1.6'  # ⬅️ same tag as above
-
-  # Step 3 – Deploy to Cloud Run
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: 'gcloud'
-    args:
-      - run
-      - deploy
-      - 'myecp-cloud'
-      - '--image'
-      - 'europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp/myecp-cloud:1.1.6'
-      - '--region'
-      - 'europe-west1'
-      - '--platform'
-      - 'managed'
-      - '--allow-unauthenticated'
-      - '--quiet'
-
-  # Step 4 – Show deployed service URL in logs
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        echo "✅ Deployment successful!"
-        gcloud run services describe myecp-cloud --region europe-west1 --format='value(status.url)'
-
-images:
-  - 'europe-west1-docker.pkg.dev/organic-edge-475807-v2/myecp/myecp-cloud:1.1.6'
