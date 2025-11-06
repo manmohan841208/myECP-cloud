@@ -48,7 +48,9 @@ steps:
         '--region', '${_REGION}',
         '--platform', 'managed',
         '--allow-unauthenticated',
-        '--project', '${_PROJECT_ID_PERSONAL}'
+        '--project', '${_PROJECT_ID_PERSONAL}',
+        '--set-env-vars', 
+        'NODE_ENV=production,PORT=8080,API_URL=https://api.myecp-cloud.dev,ANALYTICS_KEY=example-key'
       ]
 
 # ==========================================================
