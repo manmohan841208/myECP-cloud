@@ -1,6 +1,6 @@
-export const USER_ID_LABEL = 'User ID MNM';
+export const USER_ID_LABEL = 'User ID MNM1';
 export const USER_PASSWORD_LABEL = 'Password';
-export const LOGIN_BTN = 'Log In --MNM';
+export const LOGIN_BTN = 'Log In --MNM1';
 export const FORGOT = 'Forgot';
 export const FORGOT_PASSWORD = 'Password';
 export const REMEMBER_USER_ID = 'Remember User ID';
