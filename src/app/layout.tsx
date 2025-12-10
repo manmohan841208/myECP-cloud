@@ -1,49 +1,54 @@
-import React from 'react';
-import type { Metadata } from 'next';
+
+// app/layout.tsx
 import './globals.css';
-import Navbar from '@/components/molecules/Navbar';
-import Footer from '@/components/molecules/Footer';
-import { Providers } from './providers';
-import { AuthProvider } from '@/context/AuthProvider';
-import GTMHead from '@/components/GtmHead';
-import GA from '@/components/Ga';
-import GTMNoScript from '@/components/GtmNoScript';
-import AnalyticsProvider from '@/components/AnalyticsProvider';
+import Script from 'next/script';
 
-export const metadata: Metadata = {
-  title: 'MILITARY STAR',
-  description: 'Created by AAFES web team',
-};
+const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || 'GTM-52VVNHMV';
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
-        {/* GTM loader in head */}
-        <GTMHead />
-        {/* Direct GA4 optional */}
-        <GA />
+        {/* GTM Script */}
+        <Script
+          id="gtm-loader"
+          strategy="afterInteractive"
+        >
+          {`
+            (function(w,d,s,l,i){w[l]=w[l]||[];
+              w[l].push({'gtm.start': new Date().getTime(), event:'gtm.js'});
+              var f=d.getElementsByTagName(s)[0],
+                j=d.createElement(s), dl=l!='dataLayer'?'&l='+l:'';
+              j.async=true;
+              j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+              f.parentNode.insertBefore(j,f);
+            })(window, document, 'script', 'dataLayer', '${GTM_ID}');
+          `}
+        </Script>
+
+        {/* Optional: Initialize dataLayer early */}
+        <Script id="gtm-datalayer-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+              event: 'pageview',
+              page_path: window.location.pathname
+            });
+          `}
+        </Script>
       </head>
-      <body className="bg-[#D3D3D3] text-[14px] antialiased font-arial min-h-screen flex flex-col">
-        <AuthProvider>
-          <Providers>
-            <Navbar />
-            {/* GTM noscript must be in body */}
-            <GTMNoScript />
-            {/* Tracks page views on route change */}
-            <AnalyticsProvider />
-            <main className="flex-grow">
-              {children}
-            </main>
-            <div>
-              <Footer />
-            </div>
-          </Providers>
-        </AuthProvider>
+      <body>
+        {/* GTM noscript fallback */}
+        <noscript>
+          <iframe
+            src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+            height="0"
+            width="0"
+            style={{ display: 'none', visibility: 'hidden' }}
+          />
+        </noscript>
+
+        {children}
       </body>
     </html>
   );
